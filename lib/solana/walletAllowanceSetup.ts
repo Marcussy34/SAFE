@@ -257,6 +257,13 @@ export async function buildInitSubscriptionAuthorityTransaction(
   env: SolanaEnv = process.env
 ): Promise<WalletAllowanceTransaction> {
   const context = await getWalletAllowanceContext(options, env);
+  const rpc = createRpc(env);
+  const subscriptionAuthority = await fetchMaybeSubscriptionAuthority(rpc, context.subscriptionAuthorityPda);
+
+  if (subscriptionAuthority.exists) {
+    throw new Error("Subscription authority already exists. No wallet transaction is needed.");
+  }
+
   const createUserAtaInstruction = getCreateAssociatedTokenIdempotentInstruction({
     payer: context.ownerSigner,
     ata: context.userAta,
@@ -290,6 +297,12 @@ export async function buildCreateFixedDelegationTransaction(
 
   if (!subscriptionAuthority.exists) {
     throw new Error("Initialize the subscription authority before creating the fixed delegation.");
+  }
+
+  const fixedDelegation = await fetchMaybeFixedDelegation(rpc, context.fixedDelegationPda);
+
+  if (fixedDelegation.exists) {
+    throw new Error("Fixed allowance already exists. No wallet transaction is needed.");
   }
 
   const createInstruction = getCreateFixedDelegationInstruction({

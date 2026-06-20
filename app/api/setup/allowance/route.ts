@@ -74,7 +74,8 @@ export async function POST(request: Request) {
     return Response.json({ transaction });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to build allowance transaction.";
-    const status = message.includes("Initialize the subscription authority") ? 409 : 400;
+    const status =
+      message.includes("Initialize the subscription authority") || message.includes("already exists") ? 409 : 400;
     return badRequest(message, status);
   }
 }

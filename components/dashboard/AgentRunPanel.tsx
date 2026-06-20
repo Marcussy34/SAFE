@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   ExternalLink,
   LoaderCircle,
@@ -9,6 +9,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   ShieldX,
+  Terminal,
   WalletCards
 } from "lucide-react";
 
@@ -48,6 +49,16 @@ interface AgentAttempt {
 interface AgentRunResult {
   attempts: AgentAttempt[];
   audit?: AuditRecord[];
+}
+
+type RunLogLevel = "info" | "success" | "warn" | "error";
+
+interface RunLogEntry {
+  id: number;
+  timestamp: string;
+  level: RunLogLevel;
+  command: string;
+  detail?: string;
 }
 
 function formatUsdc(amount: number) {
@@ -153,6 +164,34 @@ function balanceDelta(before: SafeDemoState | null, after: SafeDemoState | null)
   return `${delta >= 0 ? "+" : ""}${delta.toFixed(2)} USDC`;
 }
 
+function wait(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+function shortHash(value?: string) {
+  if (!value) {
+    return "not available";
+  }
+
+  return `${value.slice(0, 8)}...${value.slice(-8)}`;
+}
+
+function logLevelClass(level: RunLogLevel) {
+  if (level === "success") {
+    return "text-emerald-300";
+  }
+
+  if (level === "warn") {
+    return "text-amber-300";
+  }
+
+  if (level === "error") {
+    return "text-red-300";
+  }
+
+  return "text-sky-300";
+}
+
 function FieldRow({ label, value }: { label: string; value?: string }) {
   return (
     <div className="min-w-0">
@@ -162,12 +201,51 @@ function FieldRow({ label, value }: { label: string; value?: string }) {
   );
 }
 
+function TerminalLog({ entries, running }: { entries: RunLogEntry[]; running: boolean }) {
+  return (
+    <div className="rounded-md border border-border bg-black/70 p-3 font-mono text-xs shadow-inner">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2">
+        <div className="flex items-center gap-2 font-sans text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <Terminal className="size-3.5 text-sky-400" aria-hidden="true" />
+          Agent Execution Log
+        </div>
+        <Badge variant="outline" className="border-border bg-white/5 font-sans text-muted-foreground">
+          {running ? "running" : entries.length ? "complete" : "idle"}
+        </Badge>
+      </div>
+
+      {entries.length === 0 ? (
+        <div className="text-muted-foreground">safe$ waiting for Run Agent</div>
+      ) : (
+        <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
+          {entries.map((entry) => (
+            <div key={entry.id} className="grid gap-1 sm:grid-cols-[84px_minmax(0,1fr)]">
+              <div className="text-muted-foreground">{entry.timestamp}</div>
+              <div className="min-w-0">
+                <div className="break-words">
+                  <span className={cn("mr-2", logLevelClass(entry.level))}>safe$</span>
+                  <span className="text-foreground">{entry.command}</span>
+                </div>
+                {entry.detail ? (
+                  <div className="mt-0.5 break-words pl-8 leading-5 text-muted-foreground">{entry.detail}</div>
+                ) : null}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function AgentRunPanel() {
   const [result, setResult] = useState<AgentRunResult | null>(null);
   const [beforeState, setBeforeState] = useState<SafeDemoState | null>(null);
   const [afterState, setAfterState] = useState<SafeDemoState | null>(null);
+  const [runLog, setRunLog] = useState<RunLogEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const logSequence = useRef(0);
 
   const summary = useMemo(() => {
     const attempts = result?.attempts ?? [];
@@ -184,14 +262,50 @@ export function AgentRunPanel() {
     };
   }, [result]);
 
+  function appendLog(level: RunLogLevel, command: string, detail?: string) {
+    const id = logSequence.current + 1;
+    const timestamp = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+
+    logSequence.current = id;
+    setRunLog((entries) => [
+      ...entries,
+      {
+        id,
+        timestamp,
+        level,
+        command,
+        detail
+      }
+    ]);
+  }
+
   async function runAgent() {
     setLoading(true);
     setError(null);
+    setResult(null);
+    setAfterState(null);
+    setRunLog([]);
+    logSequence.current = 0;
 
     try {
+      appendLog("info", "safe run --agent world-cup --network devnet", "Starting x402 allowance-backed demo run.");
+      appendLog("info", "GET /api/demo/state", "Reading user balance, allowance PDA, RPC, and facilitator readiness.");
       const before = await readDemoState();
       setBeforeState(before);
-      setAfterState(null);
+      appendLog(
+        "success",
+        "state ready",
+        `user=${userBalance(before)?.usdc ?? "unknown"} allowance=${
+          before.allowanceStatus?.fixedDelegationExists ? "ready" : "missing"
+        }`
+      );
+
+      appendLog("info", "POST /api/agent/run", "Agent is requesting paid resources and waiting for SAFE preflight.");
+      appendLog("info", "x402 challenge loop", "Normalizing merchant, amount, asset, recipient, and resource metadata.");
 
       const response = await fetch("/api/agent/run", { method: "POST" });
       const body: unknown = await response.json();
@@ -200,13 +314,57 @@ export function AgentRunPanel() {
         throw new Error(errorMessageFromBody(body));
       }
 
+      appendLog("success", "agent response received", `${body.attempts.length} payment attempts returned.`);
+
+      for (const attempt of body.attempts) {
+        const status = settlementStatus(attempt);
+        const amount = formatUsdc(attempt.request.amountUsdc);
+
+        appendLog(
+          "info",
+          `x402 challenge ${attempt.request.merchantDomain}`,
+          `${amount} ${attempt.request.token} for ${attempt.request.resourceUrl}`
+        );
+        await wait(90);
+
+        appendLog(
+          attempt.decision.action === "reject" ? "warn" : "success",
+          `SAFE decision ${attempt.decision.reasonCode}`,
+          `${formatAction(attempt.decision.action)}: ${attempt.decision.reason}`
+        );
+        await wait(90);
+
+        if (attempt.decision.action === "redact_and_approve") {
+          appendLog("warn", "metadata redacted", "Sensitive metadata was removed before signing.");
+          await wait(90);
+        }
+
+        if (status === "settled") {
+          appendLog(
+            "success",
+            "facilitator verify + submit",
+            `settled tx=${shortHash(attempt.settlement?.txSignature ?? attempt.auditRecord?.txSignature)}`
+          );
+        } else if (status === "failed") {
+          appendLog("error", "facilitator settlement failed", attempt.settlement?.error ?? "No transaction submitted.");
+        } else {
+          appendLog("warn", "signing skipped", "SAFE blocked the request before delegatee signing.");
+        }
+
+        await wait(90);
+      }
+
       setResult(body);
 
+      appendLog("info", "GET /api/demo/state --after", "Refreshing balances and audit state after settlement.");
       const after = await readDemoState();
       setAfterState(after);
+      appendLog("success", "run complete", `delta=${balanceDelta(before, after)} auditRecords=${after.audit.length}`);
       window.dispatchEvent(new Event("safe-demo-state-updated"));
     } catch (runError) {
-      setError(runError instanceof Error ? runError.message : "Agent run failed.");
+      const message = runError instanceof Error ? runError.message : "Agent run failed.";
+      appendLog("error", "run failed", message);
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -251,8 +409,11 @@ export function AgentRunPanel() {
           </div>
         ) : null}
 
+        <TerminalLog entries={runLog} running={loading} />
+
         {result ? (
           <div className="space-y-3 rounded-md border border-border bg-muted p-3">
+            <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Run Overview</div>
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-md border border-border bg-card p-3">
                 <div className="text-xs text-muted-foreground">Settled</div>

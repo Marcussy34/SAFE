@@ -101,6 +101,26 @@ async function readJson<T>(response: Response): Promise<T> {
   return body as T;
 }
 
+function walletSetupErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : "Wallet setup transaction failed.";
+  const nestedError =
+    typeof error === "object" && error !== null && "error" in error ? (error as { error?: unknown }).error : undefined;
+  const nestedMessage =
+    nestedError instanceof Error
+      ? nestedError.message
+      : typeof nestedError === "object" && nestedError !== null && "message" in nestedError
+        ? String((nestedError as { message?: unknown }).message)
+        : undefined;
+
+  if (message === "Unexpected error" || message.includes("simulate")) {
+    return nestedMessage && nestedMessage !== message
+      ? nestedMessage
+      : "Wallet simulation failed. Refresh setup status; if authority and allowance already exist, no setup transaction is needed.";
+  }
+
+  return nestedMessage && nestedMessage !== message ? `${message}: ${nestedMessage}` : message;
+}
+
 export function WalletAllowancePanel() {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
@@ -109,6 +129,7 @@ export function WalletAllowancePanel() {
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<SetupAction | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [lastSignature, setLastSignature] = useState<string | null>(null);
   const ownerAddress = useMemo(() => publicKey?.toBase58(), [publicKey]);
 
@@ -147,8 +168,21 @@ export function WalletAllowancePanel() {
       return;
     }
 
+    if (action === "initSubscriptionAuthority" && status?.subscriptionAuthorityExists) {
+      setError(null);
+      setInfo("Subscription authority already exists. No wallet signature is needed.");
+      return;
+    }
+
+    if (action === "createFixedDelegation" && status?.fixedDelegationExists) {
+      setError(null);
+      setInfo("Allowance already exists. Run the agent; no wallet signature is needed.");
+      return;
+    }
+
     setActionLoading(action);
     setError(null);
+    setInfo(null);
     setLastSignature(null);
 
     try {
@@ -165,13 +199,16 @@ export function WalletAllowancePanel() {
       setLastSignature(signature);
       await refresh();
     } catch (setupError) {
-      setError(setupError instanceof Error ? setupError.message : "Wallet setup transaction failed.");
+      setError(walletSetupErrorMessage(setupError));
     } finally {
       setActionLoading(null);
     }
   }
 
-  const canCreateDelegation = Boolean(status?.subscriptionAuthorityExists);
+  const authorityReady = Boolean(status?.subscriptionAuthorityExists);
+  const allowanceReady = Boolean(status?.fixedDelegationExists);
+  const canInitAuthority = Boolean(ownerAddress) && !authorityReady && actionLoading === null;
+  const canCreateDelegation = Boolean(ownerAddress) && authorityReady && !allowanceReady && actionLoading === null;
 
   return (
     <Card className="rounded-md border border-border bg-card shadow-none ring-0">
@@ -211,6 +248,14 @@ export function WalletAllowancePanel() {
             <CheckCircle2 className="size-4 text-emerald-300" aria-hidden="true" />
             <AlertTitle>Transaction confirmed</AlertTitle>
             <AlertDescription className="break-all">{lastSignature}</AlertDescription>
+          </Alert>
+        ) : null}
+
+        {info ? (
+          <Alert className="rounded-md border-sky-400/30 bg-sky-400/10 text-sky-200">
+            <CheckCircle2 className="size-4 text-sky-300" aria-hidden="true" />
+            <AlertTitle>Setup ready</AlertTitle>
+            <AlertDescription>{info}</AlertDescription>
           </Alert>
         ) : null}
 
@@ -287,21 +332,22 @@ export function WalletAllowancePanel() {
             <Button
               type="button"
               onClick={() => void submitSetupAction("initSubscriptionAuthority")}
-              disabled={!ownerAddress || actionLoading !== null}
+              disabled={!canInitAuthority}
               className="justify-start"
+              variant={authorityReady ? "outline" : "default"}
             >
               {actionLoading === "initSubscriptionAuthority" ? (
                 <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
               ) : (
                 <ShieldCheck className="size-4" aria-hidden="true" />
               )}
-              Initialize authority
+              {authorityReady ? "Authority initialized" : "Initialize authority"}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => void submitSetupAction("createFixedDelegation")}
-              disabled={!ownerAddress || !canCreateDelegation || actionLoading !== null}
+              disabled={!canCreateDelegation}
               className="justify-start"
             >
               {actionLoading === "createFixedDelegation" ? (
@@ -309,7 +355,7 @@ export function WalletAllowancePanel() {
               ) : (
                 <ShieldCheck className="size-4" aria-hidden="true" />
               )}
-              Create allowance
+              {allowanceReady ? "Allowance ready" : "Create allowance"}
             </Button>
           </div>
         </div>

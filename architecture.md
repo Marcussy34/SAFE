@@ -177,6 +177,8 @@ Current primary path:
 Open the dashboard, connect a devnet wallet, initialize authority, then create allowance.
 ```
 
+If the dashboard already shows `Subscription authority: exists` and `Fixed delegation: exists`, setup is complete. Do not sign another setup transaction for that wallet; use `Run Agent` instead.
+
 Legacy env-key smoke command:
 
 ```bash
