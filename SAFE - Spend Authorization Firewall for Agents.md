@@ -871,7 +871,7 @@ SAFE v0.1 | Page 14
 |**Solana**|Solana devnet SVM signer, SPL Token or Token-2022 mint, and<br>`@solana/subscriptions` fixed delegation.|
 |**Payment protocol**|x402 HTTP 402 challenge/response, `exact` SVM payment payload, and<br>custom/mock facilitator verification for allowance-backed transactions.|
 |**x402 packages**|Use `@x402/core` and server helpers where they fit; build the<br>allowance-backed transaction in the Subscriptions adapter, then encode it<br>inside the x402 payload.|
-|**Subscriptions packages**|`@solana/subscriptions`, `@solana/kit`, `@solana-program/token`.|
+|**Subscriptions packages**|`@solana/subscriptions`, `@solana/kit`, `@solana-program/token`, and<br>`@solana-program/compute-budget` for x402-compatible SVM transaction layout.|
 |**AP2 compatibility**|Local AP2-style intent/mandate JSON that SAFE enforces before<br>delegatee signing; full AP2 SDK integration later.|
 |**AI agent**|Scripted agent flow for demo reliability; optional LLM wrapper later.|
 
@@ -1439,7 +1439,55 @@ threshold.",
 }
 ```
 
-## **Appendix C. Sources and references**
+## **Appendix C. Devnet wiring notes**
+
+As of June 19, 2026, SAFE has a live devnet path for fixed allowance setup and allowance-backed settlement.
+
+Implemented commands:
+
+```bash
+pnpm safe:devnet:balances
+SAFE_DEMO_MODE=false pnpm safe:devnet:setup-allowance
+SAFE_DEMO_MODE=false pnpm safe:devnet:smoke
+pnpm safe:x402:public:verify
+```
+
+Live wiring details:
+
+- Mint: official Solana devnet USDC, `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`.
+- Program: Solana Subscriptions/Allowances, `De1egAFMkMWZSN5rYXRj9CAdheBamobVNubTsi9avR44`.
+- Subscription authority PDA: `7AmEUiscM8384CbPpBP4tQEFynWgQBt2TAnrHXt7d2eU`.
+- Fixed delegation PDA: `9ju3GPL9UU156aGoZGvBmKWoroR3w55PqHZnKNDGkU9Z`.
+- Delegator ATA: `3Jh8WjHq6n84anFFuyxjZrNbJjjuXDWZz5vLLyEV8kzp`.
+- Delegatee: `jHyssKmcgJNrTK6uUJLhXEid4cZoEbwageg9SfFUzrg`.
+- Setup is idempotent: rerunning the setup command reuses the existing Subscription Authority and fixed delegation.
+- The smoke command submits a real `transferFixed` settlement with the facilitator/sponsor as fee payer.
+
+Verified devnet receipts:
+
+- `initSubscriptionAuthority`: `3PHnbQeVTsy6rBMkjTjG7R69RUBmiTTfcha1TS37aqY9pPDa91vPRcRa6zmYnkDZwTAoRhBU73UmZTj9BKKyTmVo`.
+- `createFixedDelegation`: `2UYaWjNBdbZhA1DzuvNdGHUe3Q74xwermFC171LW1yK6CKbvT28dDUizdSUXHyBXgJSEU7XNFTkvFztwBw5PuXwP`.
+- `transferFixed` smoke settlement: `5LAGFiCmED4qk2mfh55xF9Po4QC2MuiDMS8TsVij3Z8LSFf1w2ZqQwveMTxF5WCt4AmNVVcTb5UAXjKTifCZGoiJ`.
+
+Full live agent scenario receipts:
+
+- Approved stats payment: `28L6cozSSJQ2cthu1NXZPSiS3CpANfT7SsEabSpDPg1HsvJMEJ6r7KQvYfPo12PK94onxJ2WZ8WNJd452DD91Rmq`.
+- Approved transit payment: `sCt22vWvxomypJoZKnnJVeSZYtxoLhd2omYnbZhDvFsV8ToMH86UJc3j1HhpAqypM5iB6QBcUYLRyeg7MTbcPK8`.
+- Approved food voucher payment: `QdTwRNEbCHjEycsZ6jKep4LfG2Z8kpF4A7RcQtuqqp8H8qwwieEuAj6pv65s6XhuEschCfBQv3kXCQgQN4ySufM`.
+- Redacted PII payment: `3U85hMxg9Tp8B99DadBUbPdyMQeTfV2a9mMhCsDfqtU9RVUY9325hvBb3WXtm9Vpt5YvPbqY3W8pwrGLCsJZY6kZ`.
+- Blocked without signing: fake merchant, duplicate stats request, and over-limit premium-feed request.
+
+Important demo boundary: SAFE uses a local/custom facilitator path for allowance-backed settlement. Public x402 facilitators may still require simulation-based SVM verification and a program allowlist before accepting Subscriptions/Allowances wrapper transactions.
+
+Public x402 facilitator probe on June 19, 2026:
+
+- Public facilitator URL: `https://x402.org/facilitator`.
+- The facilitator advertises Solana devnet `exact` support with `smartWalletSupported: true`.
+- A standard direct-wallet x402 SVM payload verified successfully for official devnet USDC.
+- The SAFE allowance-backed `transferFixed` payload was rejected with `smart_wallet_program_not_allowed: De1egAFMkMWZSN5rYXRj9CAdheBamobVNubTsi9avR44`.
+- Conclusion: public x402 works for standard Solana wallet payments today, but SAFE allowance-backed Subscriptions settlement still needs a custom/self-hosted facilitator or a public facilitator configuration that allowlists the Solana Subscriptions/Allowances program.
+
+## **Appendix D. Sources and references**
 
 External references used for market context and protocol descriptions. URLs are included so the reader can verify current details. Some research references are preprints and should be treated as signals, not final consensus.
 

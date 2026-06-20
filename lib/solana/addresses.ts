@@ -1,4 +1,5 @@
 export const DEFAULT_SOLANA_RPC_URL = "https://api.devnet.solana.com";
+export const DEFAULT_SOLANA_WS_URL = "wss://api.devnet.solana.com/";
 
 export type SolanaEnv = Record<string, string | undefined>;
 
@@ -8,6 +9,22 @@ export function deriveDemoAtaLabel(owner: string, mint: string): string {
 
 export function getSolanaRpcUrl(env: SolanaEnv = process.env): string {
   return env.SOLANA_RPC_URL?.trim() || DEFAULT_SOLANA_RPC_URL;
+}
+
+export function getSolanaRpcSubscriptionsUrl(env: SolanaEnv = process.env): string {
+  const configuredWsUrl = env.SOLANA_RPC_WS_URL?.trim();
+
+  if (configuredWsUrl) {
+    return configuredWsUrl;
+  }
+
+  try {
+    const url = new URL(getSolanaRpcUrl(env));
+    url.protocol = url.protocol === "http:" ? "ws:" : "wss:";
+    return url.toString();
+  } catch {
+    return DEFAULT_SOLANA_WS_URL;
+  }
 }
 
 export function isLiveSolanaMode(env: SolanaEnv = process.env): boolean {

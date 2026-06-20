@@ -3,13 +3,10 @@ import { DEMO_TOKEN_DECIMALS } from "../../lib/constants";
 import { DEMO_POLICY } from "../../lib/fixtures/demoPolicy";
 import { MERCHANTS } from "../../lib/fixtures/merchants";
 import { deriveDemoAtaLabel, getSolanaRpcUrl, isLiveSolanaMode, redactRpcUrl } from "../../lib/solana/addresses";
+import { getDevnetBalances } from "../../lib/solana/liveSettlement";
+import { loadLocalEnv } from "./load-local-env";
 
 const INSTALLED_SOLANA_PACKAGES = ["@solana/subscriptions", "@solana/kit", "@solana-program/token"] as const;
-const LIVE_PLUGIN_PACKAGES = ["@solana/kit-plugin-rpc", "@solana/kit-plugin-signer"] as const;
-
-function hasDependency(packageName: string): boolean {
-  return Object.keys(packageJson.dependencies).includes(packageName);
-}
 
 function printPackageInfo(): void {
   console.log("Solana package versions:");
@@ -17,21 +14,13 @@ function printPackageInfo(): void {
   for (const packageName of INSTALLED_SOLANA_PACKAGES) {
     console.log(`- ${packageName}: ${packageJson.dependencies[packageName]}`);
   }
-
-  console.log("Live transaction writer packages:");
-
-  for (const packageName of LIVE_PLUGIN_PACKAGES) {
-    console.log(`- ${packageName}: ${hasDependency(packageName) ? "present" : "missing"}`);
-  }
 }
 
 function collectMissingLivePrerequisites(): string[] {
-  const missing = LIVE_PLUGIN_PACKAGES.filter((packageName) => !hasDependency(packageName)).map(
-    (packageName) => `${packageName} dependency`
-  );
+  const missing: string[] = [];
 
   if (!process.env.SAFE_USER_SIGNER_BASE58?.trim()) {
-    missing.push("SAFE_USER_SIGNER_BASE58 for the user mint authority/delegator signer");
+    missing.push("SAFE_USER_SIGNER_BASE58 for the user/delegator signer");
   }
 
   if (!process.env.SAFE_SESSION_SECRET_BASE58?.trim() && !process.env.SAFE_FACILITATOR_SECRET_BASE58?.trim()) {
@@ -47,7 +36,7 @@ function throwLivePrerequisiteError(missing: string[]): never {
       "Live devnet token setup is prerequisite-gated and did not submit a transaction.",
       "Missing live prerequisites:",
       ...missing.map((item) => `- ${item}`),
-      "Required path: add the official RPC/signer plugin dependencies, load signer material from env, create/fund the token with @solana/kit and @solana-program/token, then use @solana/subscriptions APIs such as initSubscriptionAuthority, createFixedDelegation, and transferFixed in the allowance flow."
+      "SAFE_DEMO_MINT points at official devnet USDC. This script does not mint; fund the user wallet externally, then run the balance and allowance scripts."
     ].join("\n")
   );
 }
@@ -68,7 +57,9 @@ function printDemoValues(): void {
   console.log("Demo mode only prints fixture values. No devnet transaction was submitted.");
 }
 
-function main(): void {
+async function main(): Promise<void> {
+  loadLocalEnv();
+
   const liveMode = isLiveSolanaMode();
   const rpcUrl = getSolanaRpcUrl();
 
@@ -78,15 +69,26 @@ function main(): void {
   printPackageInfo();
 
   if (liveMode) {
-    throwLivePrerequisiteError(collectMissingLivePrerequisites());
+    const missing = collectMissingLivePrerequisites();
+
+    if (missing.length > 0) {
+      throwLivePrerequisiteError(missing);
+    }
+
+    console.log("Live mode uses official devnet USDC. No mint transaction is submitted by SAFE.");
+    console.log("Configured signer balances:");
+
+    for (const balance of await getDevnetBalances()) {
+      console.log(`- ${balance.label}: ${balance.sol}, ${balance.usdc}`);
+    }
+
+    return;
   }
 
   printDemoValues();
 }
 
-try {
-  main();
-} catch (error) {
+main().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : String(error));
   process.exitCode = 1;
-}
+});

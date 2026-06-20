@@ -2,13 +2,10 @@ import packageJson from "../../package.json";
 import { DEMO_POLICY } from "../../lib/fixtures/demoPolicy";
 import { getAllowanceState } from "../../lib/solana/allowanceAdapter";
 import { getSolanaRpcUrl, isLiveSolanaMode, redactRpcUrl } from "../../lib/solana/addresses";
+import { setupFixedAllowance, SUBSCRIPTIONS_PROGRAM_FOR_SAFE } from "../../lib/solana/liveSettlement";
+import { loadLocalEnv } from "./load-local-env";
 
 const INSTALLED_SOLANA_PACKAGES = ["@solana/subscriptions", "@solana/kit", "@solana-program/token"] as const;
-const LIVE_PLUGIN_PACKAGES = ["@solana/kit-plugin-rpc", "@solana/kit-plugin-signer"] as const;
-
-function hasDependency(packageName: string): boolean {
-  return Object.keys(packageJson.dependencies).includes(packageName);
-}
 
 function printPackageInfo(): void {
   console.log("Solana package versions:");
@@ -16,25 +13,21 @@ function printPackageInfo(): void {
   for (const packageName of INSTALLED_SOLANA_PACKAGES) {
     console.log(`- ${packageName}: ${packageJson.dependencies[packageName]}`);
   }
-
-  console.log("Live transaction writer packages:");
-
-  for (const packageName of LIVE_PLUGIN_PACKAGES) {
-    console.log(`- ${packageName}: ${hasDependency(packageName) ? "present" : "missing"}`);
-  }
 }
 
 function collectMissingLivePrerequisites(): string[] {
-  const missing = LIVE_PLUGIN_PACKAGES.filter((packageName) => !hasDependency(packageName)).map(
-    (packageName) => `${packageName} dependency`
-  );
+  const missing: string[] = [];
 
   if (!process.env.SAFE_USER_SIGNER_BASE58?.trim()) {
     missing.push("SAFE_USER_SIGNER_BASE58 for the user/delegator signer");
   }
 
-  if (!process.env.SAFE_SESSION_SECRET_BASE58?.trim() && !process.env.SAFE_FACILITATOR_SECRET_BASE58?.trim()) {
-    missing.push("SAFE_SESSION_SECRET_BASE58 or SAFE_FACILITATOR_SECRET_BASE58 for the SAFE delegate signer");
+  if (!process.env.SAFE_SESSION_SECRET_BASE58?.trim()) {
+    missing.push("SAFE_SESSION_SECRET_BASE58 for the SAFE delegate signer");
+  }
+
+  if (!process.env.SAFE_FACILITATOR_SECRET_BASE58?.trim()) {
+    missing.push("SAFE_FACILITATOR_SECRET_BASE58 for the transaction sponsor");
   }
 
   if (!process.env.SAFE_DEMO_MINT?.trim()) {
@@ -50,7 +43,7 @@ function throwLivePrerequisiteError(missing: string[]): never {
       "Live fixed allowance setup is prerequisite-gated and did not submit a transaction.",
       "Missing live prerequisites:",
       ...missing.map((item) => `- ${item}`),
-      "Required path: create a @solana/kit client with @solana/kit-plugin-rpc and @solana/kit-plugin-signer, load the user signer from env, call initSubscriptionAuthority when needed, createFixedDelegation for setup, and transferFixed later with the delegatee signer. Amounts must be base units."
+      "Required path: load user, delegatee, and sponsor signer material from env, then call initSubscriptionAuthority and createFixedDelegation with @solana/subscriptions. Amounts must be base units."
     ].join("\n")
   );
 }
@@ -77,6 +70,8 @@ async function printDemoValues(): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  loadLocalEnv();
+
   const liveMode = isLiveSolanaMode();
   const rpcUrl = getSolanaRpcUrl();
 
@@ -86,7 +81,33 @@ async function main(): Promise<void> {
   printPackageInfo();
 
   if (liveMode) {
-    throwLivePrerequisiteError(collectMissingLivePrerequisites());
+    const missing = collectMissingLivePrerequisites();
+
+    if (missing.length > 0) {
+      throwLivePrerequisiteError(missing);
+    }
+
+    const result = await setupFixedAllowance();
+
+    console.log("Live fixed allowance:");
+    console.log(`- Program: ${SUBSCRIPTIONS_PROGRAM_FOR_SAFE}`);
+    console.log(`- Token mint: ${result.mint}`);
+    console.log(`- Subscription authority PDA: ${result.subscriptionAuthorityPda}`);
+    console.log(`- Fixed delegation PDA: ${result.fixedDelegationPda}`);
+    console.log(`- Delegator ATA: ${result.delegatorAta}`);
+    console.log(`- Delegatee: ${result.delegatee}`);
+    console.log(`- initSubscriptionAuthority: ${result.skippedInit ? "already initialized" : result.initSignature}`);
+    console.log(`- createFixedDelegation: ${result.skippedCreate ? "already exists" : result.createSignature}`);
+
+    if (result.initExplorerUrl) {
+      console.log(`- Init explorer URL: ${result.initExplorerUrl}`);
+    }
+
+    if (result.createExplorerUrl) {
+      console.log(`- Delegation explorer URL: ${result.createExplorerUrl}`);
+    }
+
+    return;
   }
 
   await printDemoValues();

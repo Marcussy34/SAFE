@@ -1,6 +1,7 @@
 import { createAuditRecord } from "@/lib/audit/auditLog";
 import { evaluatePolicy } from "@/lib/policy/policyEngine";
 import { createRequestFingerprint } from "@/lib/policy/requestFingerprint";
+import { prepareRuntimePreflightContext } from "@/lib/solana/runtimePreflight";
 import { memoryStore } from "@/lib/store/memoryStore";
 import { normalizePaymentRequirement, type DemoPaymentRequirement } from "@/lib/x402/paymentRequirements";
 
@@ -27,15 +28,18 @@ export async function POST(request: Request) {
 
   try {
     const normalized = normalizePaymentRequirement(body.requirement);
+    const runtimeContext = await prepareRuntimePreflightContext(normalized, memoryStore.policy);
+    const runtimeRequest = runtimeContext.request;
+    const runtimePolicy = runtimeContext.policy;
     const replay = memoryStore.replayGuard.checkAndRemember(
-      createRequestFingerprint(normalized),
-      normalized.rawRequestHash,
-      memoryStore.policy.replayPolicy.idempotencyWindowSeconds
+      createRequestFingerprint(runtimeRequest),
+      runtimeRequest.rawRequestHash,
+      runtimePolicy.replayPolicy.idempotencyWindowSeconds
     );
-    const decision = evaluatePolicy(normalized, memoryStore.policy, memoryStore.intent, replay);
-    const auditRecord = memoryStore.appendAudit(createAuditRecord(normalized, decision, "not_attempted"));
+    const decision = evaluatePolicy(runtimeRequest, runtimePolicy, memoryStore.intent, replay);
+    const auditRecord = memoryStore.appendAudit(createAuditRecord(runtimeRequest, decision, "not_attempted"));
 
-    return Response.json({ normalized, decision, auditRecord });
+    return Response.json({ normalized: runtimeRequest, decision, auditRecord });
   } catch (error) {
     return badRequest(error instanceof Error ? error.message : "Invalid payment requirement.");
   }

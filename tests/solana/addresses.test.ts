@@ -3,7 +3,9 @@ import { DEMO_POLICY } from "@/lib/fixtures/demoPolicy";
 import { getAllowanceState } from "@/lib/solana/allowanceAdapter";
 import {
   DEFAULT_SOLANA_RPC_URL,
+  DEFAULT_SOLANA_WS_URL,
   deriveDemoAtaLabel,
+  getSolanaRpcSubscriptionsUrl,
   isLiveSolanaMode,
   redactRpcUrl,
   solanaExplorerTxUrl
@@ -34,6 +36,16 @@ describe("solana address helpers", () => {
     expect(redactRpcUrl("https://rpc.example.com/path?api-key=secret")).toBe("https://rpc.example.com/...");
     expect(redactRpcUrl("https://user:pass@rpc.example.com")).toBe("https://rpc.example.com/...");
     expect(redactRpcUrl("not a url")).toBe("[invalid-rpc-url]");
+  });
+
+  it("derives websocket RPC URLs unless explicitly configured", () => {
+    expect(getSolanaRpcSubscriptionsUrl({})).toBe(DEFAULT_SOLANA_WS_URL);
+    expect(getSolanaRpcSubscriptionsUrl({ SOLANA_RPC_URL: "https://api.devnet.solana.com" })).toBe(
+      "wss://api.devnet.solana.com/"
+    );
+    expect(getSolanaRpcSubscriptionsUrl({ SOLANA_RPC_WS_URL: "wss://rpc.example.com/ws" })).toBe(
+      "wss://rpc.example.com/ws"
+    );
   });
 });
 

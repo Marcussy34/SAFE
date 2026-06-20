@@ -111,7 +111,7 @@ describe("verifyAllowancePaymentOutcome", () => {
     expect(result.matchingTransferCount).toBe(2);
   });
 
-  it("throws a prerequisite-gated live settlement error when SAFE_DEMO_MODE=false", () => {
+  it("keeps the demo payload builder disabled when SAFE_DEMO_MODE=false", () => {
     expect(() => buildAllowanceBackedPaymentPayload(statsRequest(), { SAFE_DEMO_MODE: "false" })).toThrow(
       LIVE_SETTLEMENT_PREREQUISITE_ERROR
     );

@@ -71,8 +71,11 @@ describe("runWorldCupAgentScenario", () => {
     }
   });
 
-  it("records failed settlement without throwing when live settlement is prerequisite-gated", async () => {
+  it("records failed settlement without throwing when live signer env is missing", async () => {
     process.env.SAFE_DEMO_MODE = "false";
+    delete process.env.SAFE_USER_SIGNER_BASE58;
+    delete process.env.SAFE_SESSION_SECRET_BASE58;
+    delete process.env.SAFE_FACILITATOR_SECRET_BASE58;
 
     const result = await runWorldCupAgentScenario();
     const approved = result.attempts.filter(
@@ -83,7 +86,7 @@ describe("runWorldCupAgentScenario", () => {
     expect(approved).toHaveLength(4);
     expect(approved.every((attempt) => attempt.settlement?.settlementStatus === "failed")).toBe(true);
     expect(approved.every((attempt) => attempt.auditRecord.settlementStatus === "failed")).toBe(true);
-    expect(approved.every((attempt) => attempt.settlement?.error?.includes("prerequisite-gated"))).toBe(true);
+    expect(approved.every((attempt) => attempt.settlement?.error?.includes("SAFE_USER_SIGNER_BASE58"))).toBe(true);
     expect(blocked.every((attempt) => attempt.settlement === undefined)).toBe(true);
     expect(blocked.every((attempt) => attempt.auditRecord.settlementStatus === "not_attempted")).toBe(true);
   });

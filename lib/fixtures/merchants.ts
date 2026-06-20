@@ -8,7 +8,7 @@ export const MERCHANTS: Record<string, MerchantRegistryEntry> = {
     displayName: "World Cup Stats API",
     category: "match_data",
     recipientAddress: "2izHjzP6TMxrrTqqwktu2HJQzmqit2GKkkqD288MpTQC",
-    recipientAta: "2izHjzP6TMxrrTqqwktu2HJQzmqit2GKkkqD288MpTQC:ata:6cTTbwaVL9CEZ9W1y96DXKzEjmAYs9tqqkKk2e92hSs1",
+    recipientAta: "DXnzs7ZAKcty2ovRGfSRTUjGdHJKnaqWBQ4hsZ9U7Vc5",
     tokenMint: DEMO_MINT_PLACEHOLDER,
     maxExpectedPriceUsdc: 0.05,
     trustStatus: "trusted_demo"
@@ -19,7 +19,7 @@ export const MERCHANTS: Record<string, MerchantRegistryEntry> = {
     displayName: "Match Transit API",
     category: "transit",
     recipientAddress: "5bD5k7qXPrY97UKQ6V7CH6vBBd7cM5R4J7ApzVMf7BMr",
-    recipientAta: "5bD5k7qXPrY97UKQ6V7CH6vBBd7cM5R4J7ApzVMf7BMr:ata:6cTTbwaVL9CEZ9W1y96DXKzEjmAYs9tqqkKk2e92hSs1",
+    recipientAta: "3bgifTfUfvJLLN8GMPEUhG6jwtrbKKiB77qBSPpFigZF",
     tokenMint: DEMO_MINT_PLACEHOLDER,
     maxExpectedPriceUsdc: 0.1,
     trustStatus: "trusted_demo"
@@ -30,7 +30,7 @@ export const MERCHANTS: Record<string, MerchantRegistryEntry> = {
     displayName: "Food Voucher API",
     category: "food_voucher",
     recipientAddress: "6UHZ2FRif8e1KV9jMbNePrsb5XjZQVE2hfPkUunvy8MP",
-    recipientAta: "6UHZ2FRif8e1KV9jMbNePrsb5XjZQVE2hfPkUunvy8MP:ata:6cTTbwaVL9CEZ9W1y96DXKzEjmAYs9tqqkKk2e92hSs1",
+    recipientAta: "EBkpxYB3uuigVQtCbs8UAq3iQdtNf9uUhXEcD2weSa7B",
     tokenMint: DEMO_MINT_PLACEHOLDER,
     maxExpectedPriceUsdc: 0.1,
     trustStatus: "trusted_demo"
@@ -41,7 +41,7 @@ export const MERCHANTS: Record<string, MerchantRegistryEntry> = {
     displayName: "Fake Merch API",
     category: "merch",
     recipientAddress: "659BYYHvto7sCDaPwNwfgRpn1a9LhDuwXzERWoEvrC6L",
-    recipientAta: "659BYYHvto7sCDaPwNwfgRpn1a9LhDuwXzERWoEvrC6L:ata:6cTTbwaVL9CEZ9W1y96DXKzEjmAYs9tqqkKk2e92hSs1",
+    recipientAta: "56uzUNxhWNcUNYg3iQEGmGQJ3nPyY8cvg2f53mwEkfc8",
     tokenMint: DEMO_MINT_PLACEHOLDER,
     maxExpectedPriceUsdc: 0.01,
     trustStatus: "blocked"

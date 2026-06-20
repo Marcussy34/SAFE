@@ -3,10 +3,12 @@ import { usdcToAtomicUnits } from "@/lib/constants";
 import { verifyAllowancePaymentOutcome } from "@/lib/facilitator/facilitatorVerifier";
 import { evaluatePolicy } from "@/lib/policy/policyEngine";
 import { createRequestFingerprint } from "@/lib/policy/requestFingerprint";
-import { solanaExplorerTxUrl } from "@/lib/solana/addresses";
+import { isLiveSolanaMode, solanaExplorerTxUrl } from "@/lib/solana/addresses";
 import { buildAllowanceBackedPaymentPayload } from "@/lib/solana/allowanceSettlement";
+import { settleLiveAllowancePayment } from "@/lib/solana/liveSettlement";
+import { prepareRuntimePreflightContext } from "@/lib/solana/runtimePreflight";
 import { memoryStore } from "@/lib/store/memoryStore";
-import type { AuditRecord, NormalizedPaymentRequest, PolicyDecision } from "@/lib/types";
+import type { AuditRecord, NormalizedPaymentRequest, PolicyDecision, SpendPolicy } from "@/lib/types";
 import { createDemoPaymentRequirement, normalizePaymentRequirement, type DemoPaymentRequirement } from "@/lib/x402/paymentRequirements";
 
 interface AgentSettlement {
@@ -57,6 +59,10 @@ async function settleApprovedDecision(decision: PolicyDecision): Promise<AgentSe
   }
 
   try {
+    if (isLiveSolanaMode()) {
+      return await settleLiveAllowancePayment(decision.sanitizedRequest);
+    }
+
     const payload = buildAllowanceBackedPaymentPayload(decision.sanitizedRequest);
     const verification = verifyAllowancePaymentOutcome(payload, decision.sanitizedRequest);
 
@@ -85,13 +91,15 @@ async function evaluateAttempt(
   mutate?: (request: NormalizedPaymentRequest) => NormalizedPaymentRequest
 ): Promise<AgentAttempt> {
   const normalized = normalizePaymentRequirement(requirement);
-  const request = mutate ? mutate(normalized) : normalized;
+  const runtimeContext = await prepareRuntimePreflightContext(normalized, memoryStore.policy);
+  const request = mutate ? mutate(runtimeContext.request) : runtimeContext.request;
+  const policy: SpendPolicy = runtimeContext.policy;
   const replay = memoryStore.replayGuard.checkAndRemember(
     createRequestFingerprint(request),
     request.rawRequestHash,
-    memoryStore.policy.replayPolicy.idempotencyWindowSeconds
+    policy.replayPolicy.idempotencyWindowSeconds
   );
-  const decision = evaluatePolicy(request, memoryStore.policy, memoryStore.intent, replay);
+  const decision = evaluatePolicy(request, policy, memoryStore.intent, replay);
   const settlement = requiresSettlement(decision) ? await settleApprovedDecision(decision) : undefined;
   const auditRequest = decision.sanitizedRequest ?? request;
   const auditRecord = memoryStore.appendAudit(

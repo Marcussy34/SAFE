@@ -1,7 +1,9 @@
 import { verifyAllowancePaymentOutcome } from "../../lib/facilitator/facilitatorVerifier";
 import { buildAllowanceBackedPaymentPayload } from "../../lib/solana/allowanceSettlement";
 import { isLiveSolanaMode } from "../../lib/solana/addresses";
+import { applyLiveAllowanceToRequest, settleLiveAllowancePayment } from "../../lib/solana/liveSettlement";
 import { createDemoPaymentRequirement, normalizePaymentRequirement } from "../../lib/x402/paymentRequirements";
+import { loadLocalEnv } from "./load-local-env";
 
 function printResultSummary(valid: boolean, reasonCode: string, matchingTransferCount: number, innerTransferVerified: boolean): void {
   console.log("Verification summary:");
@@ -11,16 +13,27 @@ function printResultSummary(valid: boolean, reasonCode: string, matchingTransfer
   console.log(`- Inner transfer verified: ${innerTransferVerified ? "yes" : "no"}`);
 }
 
-function main(): void {
+async function main(): Promise<void> {
+  loadLocalEnv();
+
   const liveMode = isLiveSolanaMode();
   const requirement = createDemoPaymentRequirement("stats-api.demo", "/live/argentina-vs-japan", "settlement-smoke");
-  const request = normalizePaymentRequirement(requirement);
+  const normalized = normalizePaymentRequirement(requirement);
+  const request = liveMode ? await applyLiveAllowanceToRequest(normalized) : normalized;
 
   console.log("SAFE settlement smoke");
   console.log(`Mode: ${liveMode ? "live" : "demo"}`);
 
   if (liveMode) {
-    console.log("Live mode requires transferFixed signer/plugin setup before settlement can run.");
+    const settlement = await settleLiveAllowancePayment(request);
+
+    console.log(`Request: ${request.merchantDomain} ${request.amountAtomicUnits} atomic units`);
+    console.log("Live settlement:");
+    console.log(`- Status: ${settlement.settlementStatus}`);
+    console.log(`- Signature: ${settlement.txSignature}`);
+    console.log(`- Recipient ATA: ${settlement.recipientAta}`);
+    console.log(`- Explorer URL: ${settlement.explorerUrl}`);
+    return;
   }
 
   const payload = buildAllowanceBackedPaymentPayload(request);
@@ -35,9 +48,7 @@ function main(): void {
   }
 }
 
-try {
-  main();
-} catch (error) {
+main().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : String(error));
   process.exitCode = 1;
-}
+});
