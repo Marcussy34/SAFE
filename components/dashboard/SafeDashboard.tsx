@@ -1,4 +1,5 @@
-import { Activity, Database, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { Activity, BookOpen, Database, ShieldCheck } from "lucide-react";
 
 import { AgentRunPanel } from "@/components/dashboard/AgentRunPanel";
 import { AuditTimeline } from "@/components/dashboard/AuditTimeline";
@@ -21,7 +22,14 @@ export function SafeDashboard() {
               redaction, and audit outcomes.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2 text-xs text-neutral-600">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-600">
+            <Link
+              href="/docs"
+              className="inline-flex h-7 items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-2 font-medium text-neutral-700 transition hover:border-neutral-400 hover:text-neutral-950"
+            >
+              <BookOpen className="size-3.5" />
+              Docs
+            </Link>
             <span className="rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 font-medium text-emerald-700">
               Policy active
             </span>
