@@ -150,7 +150,7 @@ def slide_title(prs):
     bx += badge(s, "x402 + Solana allowances", bx, by, BLUE, PANEL_S) + Inches(0.15)
     badge(s, "external-agent API", bx, by, FAINT, PANEL_S)
 
-    footbar(s, "Open with this line.", "01 / 07")
+    footbar(s, "Open with this line.", "01 / 08")
     add_notes(s,
         'Say: "SAFE is a payment firewall for autonomous agents. Wallet caps say how much '
         'an agent can spend. SAFE decides whether this specific payment should happen at all."')
@@ -204,7 +204,7 @@ def slide_problem(prs):
 
     footbar(s,
         "Public dashboards count volume. SAFE blocks and records wrong payments.",
-        "02 / 07")
+        "02 / 08")
     add_notes(s,
         "Spend about 15 seconds. Make the distinction clear: crypto payment validity is not "
         "the same as user-intent validity. The 35k-350k estimate is a conservative model: "
@@ -249,7 +249,7 @@ def slide_solution(prs):
                      px + Inches(0.15), sy + Inches(1.25), sw - Inches(0.2), Inches(1.0),
                      size=11, color=MUTED)
 
-    footbar(s, "SAFE is not a wallet. SAFE is the buyer-side payment firewall.", "03 / 07")
+    footbar(s, "SAFE is not a wallet. SAFE is the buyer-side payment firewall.", "03 / 08")
     add_notes(s,
         'Say: "The agent does not sign directly. It asks SAFE. SAFE approves, rejects, or '
         'redacts before any settlement is attempted."')
@@ -303,7 +303,7 @@ def slide_demo(prs):
 
     footbar(s,
         "Show: decision, tx signature, Explorer URL — then the audit record via `safe audit`.",
-        "04 / 07")
+        "04 / 08")
     add_notes(s,
         "Switch to terminal or dashboard here. If live network is slow, run dry-run plus "
         "show a previous Explorer URL and audit record.")
@@ -341,7 +341,7 @@ def slide_product(prs):
                  Inches(1.5), Inches(3.0), Inches(4), Inches(1.2),
                  size=16, color=FAINT, align=PP_ALIGN.CENTER)
 
-    footbar(s, "Current MVP: devnet-only, local/private SDK and CLI.", "05 / 07")
+    footbar(s, "Current MVP: devnet-only, local/private SDK and CLI.", "05 / 08")
     add_notes(s,
         "Point out that the product is intentionally bounded: devnet, local facilitator, "
         "local registry. The important part is the end-to-end control path.")
@@ -397,7 +397,7 @@ def slide_why_now(prs):
                  Inches(0.9), Inches(6.05), Inches(11.5), Inches(0.6),
                  size=12, color=TEXT)
 
-    footbar(s, "The agent payment rail is compounding — the safety layer has to scale with it.", "06 / 07")
+    footbar(s, "The agent payment rail is compounding — the safety layer has to scale with it.", "06 / 08")
     add_notes(s,
         "Lead with x402-specific traction: 150M+ agent payments (119M on Base, 35M on Solana), "
         "~$600M annualized volume, a 10,000%+ monthly surge in late 2025, Linux Foundation "
@@ -407,7 +407,68 @@ def slide_why_now(prs):
     return s
 
 
-# ── Slide 7 — Vision ──────────────────────────────────────────────
+# ── Slide 7 — Why Solana? ─────────────────────────────────────────
+def slide_why_solana(prs):
+    s = blank_slide(prs)
+    fill_bg(s)
+    topbar(s, "Why Solana?", "The only chain with a native agent-payment primitive.")
+
+    add_text_box(s, "Solana is purpose-built for agent micropayments.",
+                 Inches(0.7), Inches(1.1), Inches(11.5), Inches(0.9),
+                 bold=True, size=30, color=TEXT)
+
+    add_text_box(s,
+        "Every design choice in SAFE — allowances, transferFixed, sub-cent fees, "
+        "sub-second finality — is possible because of how Solana works.",
+                 Inches(0.7), Inches(2.1), Inches(11.5), Inches(0.65),
+                 size=14, color=MUTED)
+
+    # 6 reason panels in 2 rows of 3
+    reasons = [
+        ("~$0.00025",  "per transaction",     "Sub-cent fees make micropayment firewalls economically viable.", PANEL, ACCENT),
+        ("<400 ms",    "block time",           "Pre-signing checks complete well inside a single block.", PANEL, TEXT),
+        ("35M+",       "Solana x402 txns",     "The rail is already live — SAFE plugs into existing volume.", PANEL, ACCENT),
+        ("transferFixed", "@solana/subscriptions", "Native allowance primitive: agents spend from a capped pool, not a free wallet.", PANEL_S, BLUE),
+        ("USDC (SPL)", "native stablecoin",    "No wrapping. Agent payments settle in the stablecoin already on-chain.", PANEL_S, TEXT),
+        ("Anchor programs", "on-chain policy", "Future: move firewall rules on-chain for trustless enforcement.", PANEL_S, FAINT),
+    ]
+
+    cw = Inches(3.9)
+    ch = Inches(1.55)
+    gap_x = Inches(0.15)
+    gap_y = Inches(0.18)
+    start_x = Inches(0.7)
+    start_y = Inches(3.0)
+
+    for i, (val, unit, desc, bg, mc) in enumerate(reasons):
+        col = i % 3
+        row = i // 3
+        px = start_x + col * (cw + gap_x)
+        py = start_y + row * (ch + gap_y)
+        add_panel(s, px, py, cw, ch, bg)
+        add_text_box(s, val,
+                     px + Inches(0.18), py + Inches(0.1), cw - Inches(0.25), Inches(0.5),
+                     bold=True, size=22, color=mc)
+        add_text_box(s, unit,
+                     px + Inches(0.18), py + Inches(0.58), cw - Inches(0.25), Inches(0.28),
+                     size=11, color=MUTED, bold=True)
+        add_text_box(s, desc,
+                     px + Inches(0.18), py + Inches(0.9), cw - Inches(0.25), Inches(0.55),
+                     size=10, color=FAINT)
+
+    footbar(s,
+        "Solana allowances are the only chain-native cap model that fits an agent firewall.",
+        "07 / 08")
+    add_notes(s,
+        "This isn't a 'we chose Solana because it's fast' slide. The transferFixed instruction "
+        "from @solana/subscriptions is the specific primitive SAFE is built on — it lets an "
+        "agent spend from a pre-authorized allowance pool rather than a fully open wallet. "
+        "No other chain has an equivalent native subscription/allowance model at this maturity. "
+        "The sub-cent fees and sub-second finality make per-payment policy checks practical at scale.")
+    return s
+
+
+# ── Slide 8 — Vision ──────────────────────────────────────────────
 def slide_vision(prs):
     s = blank_slide(prs)
     fill_bg(s)
@@ -458,7 +519,7 @@ def slide_vision(prs):
 
     footbar(s,
         "Closing line: agents need more than wallets. They need payment judgment.",
-        "07 / 07")
+        "08 / 08")
     add_notes(s,
         'End with: "Autonomous agents need more than wallets. They need payment judgment. '
         'SAFE is the firewall before money moves."')
@@ -475,6 +536,7 @@ def main():
     slide_demo(prs)
     slide_product(prs)
     slide_why_now(prs)
+    slide_why_solana(prs)
     slide_vision(prs)
 
     out = "/Users/marcus/Projects/SAFE/docs/pitch/hackathon-deck.pptx"
