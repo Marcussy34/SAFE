@@ -983,6 +983,8 @@ replay_cache(fingerprint, request_hash, expires_at)
 
 ## **15.6 Implementation levels**
 
+Implementation note: The hackathon app uses demo-mode facilitator verification by default and switches to live Solana devnet settlement when `SAFE_DEMO_MODE=false` and devnet keys are configured.
+
 |**Level**|**What to build**|**When**|
 |---|---|---|
 |**C - Simplified fallback**|x402-shaped payment challenges and real Solana allowance-backed<br>`transferFixed` settlement, but no claim of production x402 facilitator<br>compatibility.|Use if custom facilitator work stalls.|
