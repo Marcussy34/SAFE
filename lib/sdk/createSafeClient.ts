@@ -1,4 +1,5 @@
 import type { SafeDemoState } from "@/lib/runtime/demoState";
+import type { SafeDemoRunInput, SafeDemoRunRecord } from "@/lib/demo/demoRunner";
 import type { SafePayInput, SafePayResult, SafePreflightInput, SafePreflightResult } from "@/lib/safe/types";
 import type { AuditRecord } from "@/lib/types";
 
@@ -11,11 +12,17 @@ export interface SafeAuditResult {
   records: AuditRecord[];
 }
 
+export interface SafeDemoRunsResult {
+  runs: SafeDemoRunRecord[];
+}
+
 export interface SafeClient {
   preflight(input: SafePreflightInput): Promise<SafePreflightResult>;
   pay(input: SafePayInput): Promise<SafePayResult>;
   state(): Promise<SafeDemoState>;
   audit(): Promise<SafeAuditResult>;
+  demoRun(input: SafeDemoRunInput): Promise<SafeDemoRunRecord>;
+  demoState(): Promise<SafeDemoRunsResult>;
 }
 
 export class SafeClientError extends Error {
@@ -95,6 +102,15 @@ export function createSafeClient(options: SafeClientOptions): SafeClient {
     },
     audit() {
       return requestJson<SafeAuditResult>("/api/safe/audit");
+    },
+    demoRun(input) {
+      return requestJson<SafeDemoRunRecord>("/api/safe/demo/run", {
+        method: "POST",
+        body: JSON.stringify(input)
+      });
+    },
+    demoState() {
+      return requestJson<SafeDemoRunsResult>("/api/safe/demo/state");
     }
   };
 }

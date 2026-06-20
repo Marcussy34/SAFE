@@ -206,17 +206,25 @@ External agents should use the SAFE HTTP API instead of importing the scripted d
 ```text
 POST /api/safe/preflight
 POST /api/safe/pay
+POST /api/safe/demo/run
 GET  /api/safe/state
 GET  /api/safe/audit
+GET  /api/safe/demo/state
 ```
 
 `/api/safe/preflight` is advisory only. It normalizes the x402 requirement and evaluates policy with a read-only replay check. It does not settle, write audit records, or remember replay state.
 
 `/api/safe/pay` is the real execution path. It can fetch a local x402 resource URL, parse the `402` challenge, evaluate SAFE policy, settle approved or redacted decisions, write audit records, and return the paid resource response. `dryRun: true` uses the same policy path but does not settle, write audit records, or mutate replay state.
 
+`/api/safe/demo/run` is the CLI-first demo path. It turns a natural-language match-day instruction into a per-run SAFE policy, uses that same policy for enforcement, runs the scripted x402 sequence, writes audit records for non-dry runs, and stores a dashboard-visible demo transcript. Merch prompts can approve only the trusted `official-merch.demo` merchant; fake merch and unsupported categories fail closed when no trusted merchant domain exists. Live devnet is the default caller behavior for `pnpm safe demo`; the route fails before execution when live mode is required but the server is not configured with `SAFE_DEMO_MODE=false` and live allowance signers.
+
+`/api/safe/demo/state` returns the newest demo transcripts. The dashboard polls this route so terminal runs and browser state show the same prompt, policy, x402 requests, SAFE decisions, settlement receipts, and audit summary.
+
 Local wrappers:
 
 ```bash
+./node_modules/.bin/tsx bin/safe.ts demo --prompt 'Let my match-day agent spend up to $5 on match data, transit, and food vouchers. Block gambling, merch, unknown merchants, and PII.'
+./node_modules/.bin/tsx bin/safe.ts demo --prompt 'Let my match-day agent spend up to $5 on match data, transit, and food vouchers. Block gambling, merch, unknown merchants, and PII.' --dry-run
 ./node_modules/.bin/tsx examples/basic-agent/run.ts --dry-run
 ./node_modules/.bin/tsx bin/safe.ts pay http://localhost:3000/api/x402/stats --dry-run
 ```

@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { Activity, BookOpen, Database, ShieldCheck } from "lucide-react";
+import { Activity, BookOpen, CreditCard, Database, ShieldCheck } from "lucide-react";
 
 import { AgentRunPanel } from "@/components/dashboard/AgentRunPanel";
 import { AuditTimeline } from "@/components/dashboard/AuditTimeline";
+import { DemoTranscriptPanel } from "@/components/dashboard/DemoTranscriptPanel";
 import { LiveDemoStatePanel } from "@/components/dashboard/LiveDemoStatePanel";
 import { PaymentFlowDiagram } from "@/components/dashboard/PaymentFlowDiagram";
 import { PolicyPanel } from "@/components/dashboard/PolicyPanel";
@@ -37,6 +38,13 @@ export function SafeDashboard() {
               </span>
 
               <div className="ml-auto flex flex-wrap items-center gap-2 font-mono text-[11px]">
+                <Link
+                  href="/pricing"
+                  className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-card px-2 font-medium text-muted-foreground transition hover:border-primary/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
+                  <CreditCard className="size-3.5" />
+                  Pricing
+                </Link>
                 <Link
                   href="/docs"
                   className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-card px-2 font-medium text-muted-foreground transition hover:border-primary/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -102,7 +110,10 @@ export function SafeDashboard() {
 
         <section className="space-y-3">
           <SectionLabel>Live demo</SectionLabel>
-          <LiveDemoStatePanel />
+          <div className="grid gap-4">
+            <LiveDemoStatePanel />
+            <DemoTranscriptPanel />
+          </div>
         </section>
 
         <section className="space-y-3">

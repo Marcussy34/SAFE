@@ -35,6 +35,17 @@ export const MERCHANTS: Record<string, MerchantRegistryEntry> = {
     maxExpectedPriceUsdc: 0.1,
     trustStatus: "trusted_demo"
   },
+  "official-merch.demo": {
+    merchantId: "m_official_merch",
+    domain: "official-merch.demo",
+    displayName: "Official Merch API",
+    category: "merch",
+    recipientAddress: "6UHZ2FRif8e1KV9jMbNePrsb5XjZQVE2hfPkUunvy8MP",
+    recipientAta: "EBkpxYB3uuigVQtCbs8UAq3iQdtNf9uUhXEcD2weSa7B",
+    tokenMint: DEMO_MINT_PLACEHOLDER,
+    maxExpectedPriceUsdc: 0.08,
+    trustStatus: "trusted_demo"
+  },
   "fake-merch.demo": {
     merchantId: "m_fake_merch",
     domain: "fake-merch.demo",

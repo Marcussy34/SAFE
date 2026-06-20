@@ -7,6 +7,7 @@ import {
   BookOpen,
   CheckCircle2,
   Coins,
+  CreditCard,
   ExternalLink,
   FileText,
   GitBranch,
@@ -106,6 +107,7 @@ const apiRows = [
   ["GET", "/api/x402/stats", "Returns a match-data x402 payment challenge."],
   ["GET", "/api/x402/transit", "Returns a transit x402 payment challenge."],
   ["GET", "/api/x402/food", "Returns a food voucher x402 payment challenge."],
+  ["GET", "/api/x402/official-merch", "Trusted official merch merchant scenario."],
   ["GET", "/api/x402/fake-merch", "Blocked merchant scenario for the firewall demo."],
   ["GET", "/api/x402/premium-feed", "Over-limit paid resource scenario for SAFE rejection."],
   ["GET", "/api/x402/metadata-leak", "PII redaction scenario when paired with a sensitive agent reason."],
@@ -217,6 +219,13 @@ export default function DocsPage() {
             Search documentation
             <span className="ml-auto rounded border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">⌘K</span>
           </div>
+          <Link
+            href="/pricing"
+            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border px-2.5 text-xs font-medium text-muted-foreground transition hover:border-primary/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            Pricing
+            <CreditCard className="size-3.5" aria-hidden="true" />
+          </Link>
           <Link
             href="/"
             className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border px-2.5 text-xs font-medium text-muted-foreground transition hover:border-primary/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"

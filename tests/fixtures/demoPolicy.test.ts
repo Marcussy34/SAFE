@@ -14,6 +14,8 @@ describe("demo fixtures", () => {
     expect(MERCHANTS["stats-api.demo"].category).toBe("match_data");
     expect(MERCHANTS["transit-api.demo"].category).toBe("transit");
     expect(MERCHANTS["food-voucher.demo"].category).toBe("food_voucher");
+    expect(MERCHANTS["official-merch.demo"].category).toBe("merch");
+    expect(MERCHANTS["official-merch.demo"].trustStatus).toBe("trusted_demo");
   });
 
   it("marks fake merch as blocked", () => {

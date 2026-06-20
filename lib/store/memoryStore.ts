@@ -1,14 +1,20 @@
 import { DEMO_INTENT, DEMO_POLICY } from "@/lib/fixtures/demoPolicy";
 import { ReplayGuard } from "@/lib/policy/replayGuard";
 import { InMemoryReplayStore, createReplayStore, type ReplayStore } from "@/lib/policy/replayStore";
+import type { SafeDemoRunRecord } from "@/lib/demo/demoRunner";
 import type { AuditRecord } from "@/lib/types";
 
 const auditRecords: AuditRecord[] = [];
+const demoRuns: SafeDemoRunRecord[] = [];
 let replayGuard = new ReplayGuard();
 let replayStore: ReplayStore | null = null;
 
 function cloneAuditRecord(record: AuditRecord): AuditRecord {
   return { ...record };
+}
+
+function cloneJson<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
 }
 
 // Shared Redis store when SAFE_REDIS_URL is set (multi-instance safe); otherwise
@@ -44,6 +50,17 @@ export const memoryStore = {
   },
   clearAudit() {
     auditRecords.length = 0;
+  },
+  appendDemoRun(run: SafeDemoRunRecord) {
+    const storedRun = cloneJson(run);
+    demoRuns.unshift(storedRun);
+    return cloneJson(storedRun);
+  },
+  listDemoRuns() {
+    return demoRuns.map((run) => cloneJson(run));
+  },
+  clearDemoRuns() {
+    demoRuns.length = 0;
   },
   resetReplay() {
     replayGuard = new ReplayGuard();

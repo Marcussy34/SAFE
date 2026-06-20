@@ -1,5 +1,6 @@
 import { getSafeReadiness, type SafeReadiness } from "@/lib/runtime/readiness";
 import { getDevnetBalances, getLiveAllowanceContext, hasLiveSignerEnv, type DevnetBalanceRow } from "@/lib/solana/liveSettlement";
+import type { SolanaEnv } from "@/lib/solana/addresses";
 import { getWalletAllowanceStatus, type WalletAllowanceStatus } from "@/lib/solana/walletAllowanceSetup";
 import { memoryStore } from "@/lib/store/memoryStore";
 import type { AuditRecord } from "@/lib/types";
@@ -18,7 +19,7 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Unable to load live demo state.";
 }
 
-export async function getSafeDemoState(env: NodeJS.ProcessEnv = process.env): Promise<SafeDemoState> {
+export async function getSafeDemoState(env: SolanaEnv = process.env): Promise<SafeDemoState> {
   const readiness = await getSafeReadiness(env);
   const liveSignersConfigured = hasLiveSignerEnv(env);
   let balances: DevnetBalanceRow[] = [];

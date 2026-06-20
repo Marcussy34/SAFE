@@ -413,9 +413,9 @@
           </div>
           <div class="panel soft" style="margin-top: 18px;">
             <div class="metric">35k-350k</div>
-            <p class="small">modeled wrong or unsafe payment decisions at only 0.1%-1% of Solana x402 volume.</p>
+            <p class="small">Applying a 0.1%-1% wrong-payment rate to observed Solana x402 volume.</p>
           </div>
-          <p class="source">Sources: solana.com/solutions/x402; x402 attack research. Estimate is modeled, not an observed Solana count.</p>
+          <p class="source">Modeled from public Solana x402 volume (solana.com/solutions/x402) &times; wrong-payment rates from x402 attack research.</p>
         </div>
         <div class="panel bad">
           <ul class="list">
@@ -465,7 +465,7 @@
           <div class="step">
             <div class="num">05</div>
             <div class="label">Audit</div>
-            <div class="desc">Decision, reason, tx receipt, and resource result.</div>
+            <div class="desc">Decision, reason, and tx receipt.</div>
           </div>
         </div>
       </div>
@@ -506,7 +506,7 @@ pnpm safe audit</pre>
         </div>
       </div>
       <div class="footbar">
-        <span>Show: decision, tx signature, Explorer URL, audit record.</span>
+        <span>Show: decision, tx signature, Explorer URL &mdash; then the audit record via <code>safe audit</code>.</span>
         <span>04 / 07</span>
       </div>
       <aside class="notes">Switch to terminal or dashboard here. If live network is slow, run dry-run plus show a previous Explorer URL and audit record.</aside>
@@ -530,7 +530,7 @@ pnpm safe audit</pre>
           <h2>Not a mockup. A working control plane.</h2>
           <div class="grid-2" style="margin-top: 30px;">
             <div class="panel good">
-              <div class="metric">4</div>
+              <div class="metric">6</div>
               <p class="small">SAFE API routes for agents</p>
             </div>
             <div class="panel">
@@ -558,38 +558,47 @@ pnpm safe audit</pre>
     <section class="slide" data-title="Why Now">
       <div class="topbar">
         <span class="kicker">Why Now</span>
-        <span>Solana x402 usage is already measurable.</span>
+        <span>x402 agent payments went 0 &rarr; 150M+ in under a year.</span>
       </div>
       <div class="content">
-        <h2>Solana x402 has real volume. The safety layer is still missing.</h2>
-        <div class="grid-4" style="margin-top: 34px;">
+        <h2>x402 is the agent payment rail. Agentic volume is projected to 187x by 2030.</h2>
+        <!-- Today anchor: x402-specific traction proving the rail is already live. -->
+        <div class="panel soft" style="margin-top: 24px;">
+          <p class="small"><strong>x402 today:</strong> 150M+ agent payments (119M on Base, 35M on Solana) and ~$600M annualized volume in under a year &mdash; now governed by the Linux Foundation with Visa, Stripe, Circle, Google &amp; Microsoft behind it.</p>
+        </div>
+        <!-- Projected trajectory: x402 momentum (2025) into agentic-commerce forecasts (2026 &rarr; 2030). -->
+        <div class="grid-4" style="margin-top: 18px;">
           <div class="panel">
-            <div class="metric">35M+</div>
-            <p class="small">Solana x402 transactions processed all time.</p>
+            <span class="badge" style="margin-bottom: 10px;">2025</span>
+            <div class="metric">+10,000%</div>
+            <p class="small">x402 monthly transaction surge when agents went live.</p>
+          </div>
+          <div class="panel">
+            <span class="badge" style="margin-bottom: 10px;">2026</span>
+            <div class="metric">$8B</div>
+            <p class="small">agentic commerce transaction value this year (Juniper).</p>
           </div>
           <div class="panel good">
-            <div class="metric">$10M+</div>
-            <p class="small">Solana x402 payment volume processed all time.</p>
+            <span class="badge good" style="margin-bottom: 10px;">2030</span>
+            <div class="metric">$1.5T</div>
+            <p class="small">projected agentic commerce value &mdash; ~187x in four years (Juniper).</p>
           </div>
           <div class="panel">
-            <div class="metric">200M+</div>
-            <p class="small">monthly stablecoin transactions on Solana.</p>
-          </div>
-          <div class="panel">
-            <div class="metric">$11B+</div>
-            <p class="small">stablecoins in circulation on Solana.</p>
+            <span class="badge" style="margin-bottom: 10px;">2030</span>
+            <div class="metric">$3&ndash;5T</div>
+            <p class="small">agentic payments worldwide (McKinsey).</p>
           </div>
         </div>
-        <div class="panel soft" style="margin-top: 22px;">
-          <p class="small">The gap: public sources do not report how many agent payments were semantically wrong. SAFE creates that pre-signing decision and audit layer.</p>
+        <div class="panel soft" style="margin-top: 18px;">
+          <p class="small">x402 moves the money; SAFE decides whether it should move. Every agent payment needs a pre-signing safety check &mdash; so SAFE&rsquo;s market <em>is</em> agentic payment volume.</p>
         </div>
-        <p class="source">Source: solana.com/solutions/x402. Caveat: public x402 data reports transactions and volume, not verified wrong-payment counts.</p>
+        <p class="source">x402 traction: Chainalysis, Artemis, Coinbase &amp; solana.com/x402 (150M+ tx across Base + Solana, ~$600M annualized, &gt;10,000% late-2025 surge). Projections: Juniper Research (agentic commerce $8B in 2026 &rarr; $1.5T by 2030); McKinsey ($3&ndash;5T by 2030). Third-party forecasts.</p>
       </div>
       <div class="footbar">
-        <span>Solana adds 400ms finality and roughly $0.00025 transaction cost for micro-payments.</span>
+        <span>The agent payment rail is compounding &mdash; the safety layer has to scale with it.</span>
         <span>06 / 07</span>
       </div>
-      <aside class="notes">Use the official Solana numbers: 35M+ Solana x402 transactions, $10M+ volume, 200M+ monthly stablecoin transactions, $11B+ stablecoins in circulation, 400ms finality, and about $0.00025 per transaction. Then say: the market measures payment activity, but not whether the agent should have paid. That is SAFE's dataset and product wedge.</aside>
+      <aside class="notes">Lead with x402-specific traction, not generic stablecoin numbers. The rail is real: 150M+ agent payments (119M on Base, 35M on Solana), ~$600M annualized volume, a 10,000%+ monthly surge in late 2025, and Linux Foundation governance with Visa, Stripe, Circle, Google and Microsoft. Then the curve: Juniper Research projects agentic commerce transaction value from $8B in 2026 to $1.5T by 2030 (~187x); McKinsey puts agentic payments at $3-5T globally by 2030. Be clear these are third-party market projections, not x402 on-chain counts. Takeaway: x402 is the rail that moves the money, SAFE is the layer that decides whether it should move, so SAFE's addressable market grows 1:1 with agent payment volume.</aside>
     </section>
 
     <section class="slide" data-title="Vision">

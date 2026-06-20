@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { VersionedTransaction } from "@solana/web3.js";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import {
   CheckCircle2,
@@ -21,6 +21,14 @@ import { Separator } from "@/components/ui/separator";
 import { SectionLabel } from "@/components/dashboard/SectionLabel";
 import { StatusLed } from "@/components/dashboard/StatusLed";
 import { cn } from "@/lib/utils";
+
+// WalletMultiButton reads localStorage/injected wallets on the client, so SSR
+// renders different HTML than the first client render. Load it client-only to
+// avoid the hydration mismatch (documented Solana wallet-adapter + Next.js pattern).
+const WalletMultiButton = dynamic(
+  async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
+  { ssr: false }
+);
 
 type SetupAction = "initSubscriptionAuthority" | "createFixedDelegation";
 

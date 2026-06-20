@@ -14,6 +14,9 @@ SAFE means Spend Authorization Firewall for Agents. It is the payment boundary b
 - SAFE exposes an external-agent HTTP API under `/api/safe/*`.
 - Agents can call SAFE directly over HTTP, through `lib/sdk/createSafeClient.ts`, or through the local CLI in `bin/safe.ts`.
 - `preflight` and `dryRun` are read-only. They do not write audit records and do not mutate replay state.
+- `pnpm safe demo` is CLI-first and spends live devnet by default when the server is configured for live mode. Use `--dry-run` for no settlement.
+- `pnpm safe demo --prompt ...` builds and enforces a per-run policy from the prompt, so "food vouchers only" blocks match data and transit for that run.
+- Merch prompts allow only `official-merch.demo`; `fake-merch.demo` stays blocked. Unsupported categories such as "gambling only" fail closed when no trusted merchant domain exists.
 - A real `pay` call writes an audit record and settles only approved or redacted-approved decisions.
 - Approved live payments settle on Solana devnet and return a transaction signature plus Explorer URL.
 - Rejected requests produce no transaction.
@@ -69,8 +72,10 @@ Base URL is usually `http://localhost:3000`.
 ```text
 POST /api/safe/preflight
 POST /api/safe/pay
+POST /api/safe/demo/run
 GET  /api/safe/state
 GET  /api/safe/audit
+GET  /api/safe/demo/state
 ```
 
 `POST /api/safe/preflight` accepts:
@@ -137,6 +142,26 @@ It returns the request, SAFE decision, and, for non-dry real attempts, audit and
 }
 ```
 
+`POST /api/safe/demo/run` accepts:
+
+```ts
+{
+  prompt?: string;
+  dryRun?: boolean;
+  requireLive?: boolean;
+}
+```
+
+It returns a dashboard-visible demo transcript with the prompt, generated policy, allowance, x402 steps, SAFE decisions, settlement receipts, and final audit summary. Use `requireLive: true` for the CLI default so the server fails before execution unless live devnet mode and allowance signer env are ready.
+
+`GET /api/safe/demo/state` returns:
+
+```ts
+{
+  runs: SafeDemoRunRecord[];
+}
+```
+
 ## SDK Usage
 
 Prefer the SDK when writing TypeScript agents in this repo.
@@ -181,6 +206,8 @@ Available SDK calls:
 await safe.preflight({ requirement, agentReason });
 await safe.pay({ resourceUrl, agentReason, dryRun });
 await safe.pay({ requirement, agentReason, dryRun });
+await safe.demoRun({ prompt, dryRun, requireLive });
+await safe.demoState();
 await safe.state();
 await safe.audit();
 ```
@@ -192,6 +219,8 @@ Use the CLI for local/manual checks.
 ```bash
 ./node_modules/.bin/tsx bin/safe.ts doctor
 ./node_modules/.bin/tsx bin/safe.ts state
+./node_modules/.bin/tsx bin/safe.ts demo --prompt 'Let my match-day agent spend up to $5 on match data, transit, and food vouchers. Block gambling, merch, unknown merchants, and PII.'
+./node_modules/.bin/tsx bin/safe.ts demo --prompt 'Let my match-day agent spend up to $5 on match data, transit, and food vouchers. Block gambling, merch, unknown merchants, and PII.' --dry-run
 ./node_modules/.bin/tsx bin/safe.ts pay http://localhost:3000/api/x402/stats --dry-run
 ./node_modules/.bin/tsx bin/safe.ts pay http://localhost:3000/api/x402/stats
 ./node_modules/.bin/tsx bin/safe.ts agent run --dry-run

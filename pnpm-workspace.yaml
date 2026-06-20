@@ -1,0 +1,17 @@
+# pnpm 11 build-script approval gate.
+# Each dependency with a postinstall/build script must be explicitly
+# allowed (true) or denied (false), or `pnpm install` exits 1.
+allowBuilds:
+  # Allowed: prebuilt-binary downloads the app actually uses (no compiler needed)
+  esbuild: true          # used by tsx + vitest
+  sharp: true            # Next.js image optimization
+  unrs-resolver: true    # Next/ESLint native module resolver
+  # Denied: optional native speedups / hardware bindings — JS fallbacks exist,
+  # not needed for the Solana devnet demo (avoids node-gyp compile failures)
+  '@stellar/stellar-sdk': false
+  blake-hash: false
+  bufferutil: false
+  protobufjs: false
+  tiny-secp256k1: false
+  usb: false
+  utf-8-validate: false

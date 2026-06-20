@@ -844,6 +844,14 @@ Possible models:
 - Premium risk intelligence for agent payments.
 - Self-hosted open-source core plus managed cloud.
 
+Developer SaaS pricing draft:
+
+- Local SDK: free. Developers can run the SDK, CLI, policy engine, and demo flows locally.
+- Developer Gateway: $29/month for 100k hosted policy decisions, 3 active agent projects, and 7-day audit retention.
+- Scale Gateway: $149/month for 1M hosted policy decisions, 25 active agent projects, and 90-day audit retention.
+- Overage can be priced per 10k extra policy decisions instead of taking a payment-volume fee.
+- SAFE should bill for authorization and audit work, not for custody or payment rail volume.
+
 ## Target Users
 
 Initial users:
