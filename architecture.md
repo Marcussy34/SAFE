@@ -302,6 +302,82 @@ flowchart TD
   Approve --> Sign
 ```
 
+## Future Agentic Verification Mode
+
+This mode is not implemented in the current MVP. It is the next product direction for payments that are unknown to the local registry.
+
+The rule stays strict:
+
+```text
+Verifier agents gather evidence.
+SAFE makes the decision.
+Only SAFE-approved payments can reach signing.
+```
+
+```mermaid
+flowchart TD
+  Request[Normalized payment request] --> Known{Known merchant and recipient?}
+  Known -->|trusted| Policy[Run deterministic SAFE policy]
+  Known -->|blocked| Reject[Reject]
+  Known -->|unknown| Risk{Within auto-verify risk limit?}
+  Risk -->|no| Human[Ask human]
+  Risk -->|yes| Verifier[Verifier agent gathers evidence]
+  Verifier --> Evidence[Evidence bundle]
+  Evidence --> Score{Evidence satisfies policy?}
+  Score -->|yes| Policy
+  Score -->|no reliable evidence| Reject
+  Score -->|conflict or high risk| Human
+  Policy --> Decision[approve / reject / redact]
+```
+
+Evidence bundle examples:
+
+- merchant domain ownership proof
+- signed merchant manifest
+- recipient wallet ownership proof
+- token mint and network match
+- expected price range
+- category classification
+- public docs or KYB signal
+- prior SAFE audit history
+- matching shared trust database record
+
+The verifier should never receive signing authority, private keys, or permission to bypass SAFE. It can only produce evidence and a recommendation.
+
+## Future Shared Trust Layer
+
+SAFE can improve over time if verified decisions are reusable across agents and deployments.
+
+The long-term trust layer should store verified records, not raw unchecked reports:
+
+```text
+merchant domain
+verified recipient
+token mint and network
+category
+safe price range
+evidence sources
+policy version
+audit receipt hash
+review timestamp
+confidence level
+```
+
+The database can learn from:
+
+- approved payments
+- rejected fake merchants
+- recipient mismatches
+- over-limit requests
+- replay attempts
+- PII redaction cases
+- human review outcomes
+- settled transaction receipts
+
+This is similar to how security products combine local rules with shared reputation intelligence. SAFE applies that pattern to payments instead of network traffic.
+
+Decentralization is a possible later form of the shared trust layer, not a current claim. A decentralized version would need anti-spam controls, sybil resistance, privacy-preserving audit sharing, signed evidence, dispute resolution, and governance.
+
 ## x402 Compatibility Paths
 
 ```mermaid
@@ -420,6 +496,9 @@ pnpm safe:x402:public:verify
 - Not full AP2 credential exchange.
 - Not mainnet-ready.
 - Not a custodial wallet.
+- Not an implemented global trust database yet.
+- Not an implemented autonomous verifier-agent network yet.
+- Not a decentralized reputation protocol yet.
 - Not generated from `solana.new` in the current repo.
 
 ## Best Demo Framing

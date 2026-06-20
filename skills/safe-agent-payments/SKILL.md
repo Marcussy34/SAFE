@@ -17,6 +17,32 @@ SAFE means Spend Authorization Firewall for Agents. It is the payment boundary b
 - A real `pay` call writes an audit record and settles only approved or redacted-approved decisions.
 - Approved live payments settle on Solana devnet and return a transaction signature plus Explorer URL.
 - Rejected requests produce no transaction.
+- Unknown merchants fail closed in the current MVP. Treat `MERCHANT_NOT_ALLOWLISTED` as a stop signal.
+- Agentic verification and shared trust databases are product roadmap directions, not current API features.
+
+## Product Context
+
+SAFE is meant to work like a payment firewall for agents.
+
+Traditional firewalls combine local rules with shared reputation data. SAFE applies that pattern to autonomous payments:
+
+```text
+network firewall: should this traffic pass?
+SAFE payment firewall: should this agent payment pass?
+```
+
+SAFE checks the meaning of the spend before money moves:
+
+- merchant
+- recipient
+- amount
+- token and network
+- category
+- user intent
+- metadata safety
+- replay risk
+- allowance state
+- audit outcome
 
 ## Core Rule
 
@@ -34,6 +60,7 @@ The agent may fetch paid resources and inspect x402 challenges. SAFE is the only
 - Record the returned `auditRecord`, `txSignature`, and `explorerUrl` in the agent trace.
 - Do not retry rejected or duplicate payments in a loop.
 - Do not claim production public x402 facilitator compatibility. This demo supports the local SAFE facilitator/devnet path.
+- Do not perform your own off-SAFE payment verification and then pay directly. Unknown or rejected payments must remain blocked unless SAFE exposes an approved verification path or a human overrides it.
 
 ## HTTP API
 
@@ -226,6 +253,14 @@ Handle decisions exactly:
 - `reject`: stop. Do not sign, settle, fetch paid content, or retry blindly.
 - `ask_human` or `update_allowance_required`: stop and ask a human or setup flow. Do not bypass SAFE.
 
+Known and unknown payment handling:
+
+```text
+Known safe payment -> SAFE can approve within policy.
+Known unsafe payment -> SAFE rejects.
+Unknown payment -> current MVP rejects or asks for future human/verification flow.
+```
+
 Common reason codes:
 
 ```text
@@ -258,6 +293,63 @@ Before live payment:
 - If the app returns a 402 resource challenge but SAFE cannot parse it, stop and report that the resource is not compatible with this demo SAFE parser.
 - If the resource URL returns non-402 before payment, stop and report the unexpected status.
 - If a duplicate decision appears, treat it as a replay guard success. Do not try to evade it.
+
+## Future Agentic Verification Mode
+
+This skill describes the current SAFE API. The future product can add an agentic verifier for unknown merchants, but that verifier must stay outside the signing path.
+
+Correct future model:
+
+```text
+SAFE sees unknown payment
+        ↓
+Verifier agent gathers evidence
+        ↓
+Verifier returns evidence bundle and recommendation
+        ↓
+SAFE evaluates policy
+        ↓
+SAFE approves, rejects, or asks human
+```
+
+The verifier may collect:
+
+- merchant docs
+- domain ownership proof
+- signed merchant manifest
+- recipient wallet ownership proof
+- token mint and network evidence
+- expected price range
+- prior audit history
+- shared trust database records
+
+The verifier must not:
+
+- sign transactions
+- submit payments
+- bypass SAFE
+- override policy
+- treat weak or missing evidence as trust
+
+If a future SAFE endpoint returns an approved verification decision, continue only through `safe.pay()` and record the returned audit and settlement data. Never pay outside SAFE.
+
+## Shared Trust Layer Context
+
+SAFE can become stronger over time as approved, blocked, redacted, and human-reviewed cases are logged into a verified trust database.
+
+Useful future shared records include:
+
+- verified merchant domains
+- verified recipient addresses or token accounts
+- supported tokens and networks
+- safe price ranges
+- blocked scam domains
+- suspicious wallets
+- replay or duplicate patterns
+- PII leakage patterns
+- signed evidence and audit receipt hashes
+
+This database may eventually become decentralized, but the MVP does not implement that. Treat decentralization as roadmap only.
 
 ## Repo Pointers
 

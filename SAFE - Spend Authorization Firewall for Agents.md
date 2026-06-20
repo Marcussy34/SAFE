@@ -508,6 +508,52 @@ x402 payment payload contains the partially signed allowance-backed transaction.
 Audit record stores decision, hash, reason code, and receipt.
 ```
 
+## **10.5 Future agentic verification and shared trust**
+
+The MVP uses deterministic policy checks and a local merchant registry. That is the correct first trust boundary. The next product direction is to add a bounded verification path for unknown payments.
+
+The model should be:
+
+```
+Known safe merchant + valid policy -> approve.
+Known unsafe merchant or mismatch -> reject.
+Unknown merchant -> verify, ask human, or fail closed.
+```
+
+Agentic verification can make the unknown path less manual without giving the agent unsafe spend power.
+
+```
+Agent requests unknown paid resource
+   -> SAFE checks policy and local registry
+      -> no trusted record exists
+         -> verifier agent gathers evidence
+            -> evidence bundle is returned to SAFE
+               -> SAFE evaluates evidence against deterministic policy
+                  -> approve, reject, or ask human
+```
+
+The verifier agent can collect evidence such as domain ownership, signed merchant manifests, recipient wallet proof, token/network match, expected price range, public merchant documentation, KYB signals, and previous SAFE audit history.
+
+The verifier agent must not sign transactions, submit payments, override policy, or treat weak evidence as trust. SAFE remains the final decision and signing gate.
+
+Over time, verified cases can feed a shared trust database:
+
+- verified merchant domains
+- verified recipient token accounts
+- safe price ranges
+- supported tokens and networks
+- category labels
+- blocked scam domains
+- suspicious wallets
+- replay patterns
+- PII leakage patterns
+- policy decisions and audit receipt hashes
+- human review outcomes
+
+This is similar to the way security providers combine local firewall rules with shared threat intelligence. SAFE applies that pattern to agent payments.
+
+The shared database could eventually become decentralized, but that is not an MVP claim. A decentralized registry would need signed evidence, anti-spam controls, sybil resistance, privacy-preserving audit sharing, dispute resolution, and governance.
+
 ## **11. Policy model and decision engine**
 
 ## **11.1 Policy object**
@@ -759,6 +805,30 @@ call threshold.",
   "options": ["Approve once", "Approve merchant for this session", "Reject"]
 }
 ```
+
+## **13.4 Future agentic verification flow**
+
+This flow is not required for the current hackathon MVP, but it is the cleanest path from a static allowlist to a smarter SAFE network.
+
+27. Agent sends an unknown x402 payment request to SAFE.
+
+28. SAFE checks hard policy first: amount cap, token, network, expiry, PII, blocked category, and replay. If any hard rule fails, SAFE rejects without verification.
+
+29. If the payment is unknown but still inside the user's auto-verification limits, SAFE creates a verification task.
+
+30. A verifier agent investigates the merchant, domain, recipient address, resource path, price, docs, signed manifest, and prior trust records.
+
+31. The verifier returns a structured evidence bundle and a recommendation: approve, reject, or ask human.
+
+32. SAFE evaluates the evidence bundle against deterministic policy.
+
+33. If evidence is strong and the payment is inside the user's auto-approval threshold, SAFE may approve or approve once.
+
+34. If evidence is missing, contradictory, high-risk, or above the threshold, SAFE rejects or asks a human.
+
+35. Any reviewed outcome can update the future shared trust database after evidence validation and privacy filtering.
+
+The verifier agent is never the spender. It is only an evidence collector.
 
 ## **14. MVP scope for a one-day hackathon**
 
@@ -1087,9 +1157,9 @@ SAFE v0.1 | Page 17
 |---|---|
 |**v0 - Hackathon**|Policy builder, x402 paid API challenges, allowance-backed Solana<br>devnet `transferFixed` settlement, custom/mock verifier, AP2-style<br>intent constraints, World Cup agent, merchant allowlist, PII scan,<br>replay guard, dashboard.|
 |**v1 - SDK**|safe-js, x402 allowance payload builder, Solana allowance<br>adapter, signed policy decisions, hosted dashboard.|
-|**v2 - Multi-rail**|Production facilitator integration, MPP support, full AP2 mandate<br>import/export, multiple wallets, production PII scanner, merchant<br>registry.|
-|**v3 - Enterprise**|Team policies, multi-approver flows, vendor onboarding, audit<br>export, spend anomaly detection.|
-|**v4 - Protocol hardening**|Request-bound signatures, onchain policy attestations,<br>decentralized merchant reputation, verifiable receipts.|
+|**v2 - Verified registry**|Production facilitator integration, MPP support, full AP2 mandate<br>import/export, multiple wallets, production PII scanner, signed<br>merchant registry, and evidence bundles.|
+|**v3 - Agentic verification**|Bounded verifier agents for unknown merchants, human escalation,<br>shared trust records, team policies, multi-approver flows, vendor<br>onboarding, audit export, and spend anomaly detection.|
+|**v4 - Protocol hardening**|Request-bound signatures, onchain policy attestations,<br>tamper-evident shared audit receipts, decentralized merchant<br>reputation, and verifiable receipts.|
 
 
 
@@ -1152,6 +1222,8 @@ SAFE v0.1 | Page 18
 |**The market is too early.**|Agentic payment rails are being launched by Solana, Coinbase/x402,<br>Stripe/MPP, Google/AP2, OpenAI/ACP, Visa, and Mastercard. The need<br>is emerging now [1][6][8][11][13][14][16].|
 |**Why would users trust another layer?**|SAFE should be non-custodial, transparent, open-source-friendly,<br>and integrated at the wallet/SDK level. It blocks signing rather than<br>holding funds.|
 |**What about false positives?**|Use clear reason codes, approve-once options, and policy templates. For<br>micro-payments, block high-risk patterns and escalate ambiguous ones.|
+|**Is agentic verification dangerous?**|It would be dangerous if the verifier could spend. SAFE should only let<br>verifier agents gather evidence. SAFE remains the final policy and<br>signing gate.|
+|**Can a shared database be poisoned?**|Yes, if it accepts raw crowd reports. SAFE should require signed<br>evidence, provenance, review status, confidence scores, privacy filters,<br>and dispute handling before shared records affect payment decisions.|
 
 
 
@@ -1203,6 +1275,22 @@ if (decision.action === "redact_and_approve") {
 ```
 return block(decision.reason);
 ```
+
+## **21.5 Long-term positioning**
+
+SAFE starts as a deterministic payment firewall for agents. It can evolve into a shared verification layer for autonomous commerce.
+
+The simple long-term pitch:
+
+```
+SAFE checks every agent payment before money moves.
+If SAFE knows the merchant and the request matches policy, it can approve.
+If SAFE knows the request is unsafe, it rejects.
+If SAFE does not know enough, it can verify, ask a human, or fail closed.
+Every verified case can improve the shared trust layer for future payments.
+```
+
+The decentralized version is a future extension, not the MVP. SAFE should first prove signed evidence, privacy-safe audits, merchant verification, and deterministic policy decisions.
 
 ## **Appendix A. Data schemas and TypeScript interfaces**
 
