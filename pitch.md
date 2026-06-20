@@ -106,6 +106,21 @@ What we should not claim:
 - Do not claim a verified number of agents that made Solana x402 payments. Public sources report transactions, buyers, sellers, or wallets, not a clean count of autonomous agents.
 - Do not claim a verified number of wrongly made Solana x402 payments. Public sources do not label whether a payment was semantically wrong, manipulated, duplicated, or outside user intent.
 
+Deck-safe estimate:
+
+```text
+35M Solana x402 transactions x 0.1% wrong/unsafe rate = 35,000 payments
+35M Solana x402 transactions x 1.0% wrong/unsafe rate = 350,000 payments
+```
+
+Use this as a modeled risk range:
+
+```text
+Even if only 0.1%-1% of Solana x402 payments are wrong, unsafe, replayed, manipulated, or outside user intent, that implies roughly 35k-350k payment decisions that needed a pre-signing firewall.
+```
+
+Do not phrase this as an observed count. Phrase it as an estimate based on Solana's public transaction count and a conservative assumed defect rate.
+
 The SAFE framing:
 
 ```text
@@ -117,6 +132,7 @@ SAFE creates the pre-signing decision and audit dataset for that missing safety 
 Relevant safety evidence:
 
 - x402 security research has shown practical failure classes such as replay, request grant pollution, selection manipulation, unpaid service, and paid-but-denied outcomes.
+- Published x402 attack research reports `5.18%` revert-grant in vulnerable configurations, live replay up to `248` grants per payment, and `60.2%-71.8%` adversarial server-selection capture in test settings.
 - That research is protocol-risk evidence, not a Solana all-time wrong-payment count.
 - SAFE should use it to show the type of failure it prevents, while using Solana's own x402 numbers for market traction.
 
