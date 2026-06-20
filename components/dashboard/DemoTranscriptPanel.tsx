@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CircleAlert,
   ExternalLink,
@@ -20,6 +20,7 @@ import { SectionLabel } from "@/components/dashboard/SectionLabel";
 import { StatusLed, type LedTone } from "@/components/dashboard/StatusLed";
 import { cn } from "@/lib/utils";
 import type { SafeDemoRunRecord, SafeDemoRunStep } from "@/lib/demo/demoRunner";
+import { filterRunsAfterDashboardLoad } from "@/lib/demo/demoTranscriptSession";
 
 interface DemoStateResponse {
   runs: SafeDemoRunRecord[];
@@ -114,6 +115,7 @@ export function DemoTranscriptPanel() {
   const [runs, setRuns] = useState<SafeDemoRunRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const dashboardLoadedAtMs = useRef<number | null>(null);
   const latestRun = runs[0];
 
   const summaryBadges = useMemo(() => {
@@ -129,12 +131,17 @@ export function DemoTranscriptPanel() {
     ] as const;
   }, [latestRun]);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (loadedAtMs = dashboardLoadedAtMs.current) => {
+    if (loadedAtMs === null) {
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      setRuns(await readDemoRuns());
+      const serverRuns = await readDemoRuns();
+      setRuns(filterRunsAfterDashboardLoad(serverRuns, loadedAtMs));
     } catch (refreshError) {
       setError(refreshError instanceof Error ? refreshError.message : "Unable to load SAFE demo transcript.");
     } finally {
@@ -143,14 +150,17 @@ export function DemoTranscriptPanel() {
   }, []);
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => void refresh(), 0);
-    const interval = window.setInterval(refresh, 1000);
+    const loadedAtMs = Date.now();
+    dashboardLoadedAtMs.current = loadedAtMs;
+    const refreshCurrentSession = () => void refresh(loadedAtMs);
+    const timeout = window.setTimeout(refreshCurrentSession, 0);
+    const interval = window.setInterval(refreshCurrentSession, 1000);
 
     return () => {
       window.clearTimeout(timeout);
       window.clearInterval(interval);
     };
-  }, [refresh]);
+  }, [dashboardLoadedAtMs, refresh]);
 
   return (
     <Card className="rounded-md border border-border bg-card shadow-none ring-0">
@@ -169,7 +179,7 @@ export function DemoTranscriptPanel() {
             <StatusLed tone={latestRun ? "green" : "neutral"} pulse={Boolean(latestRun)} />
             {latestRun ? formatTimestamp(latestRun.completedAt) : "waiting"}
           </Badge>
-          <Button type="button" variant="outline" size="sm" onClick={refresh} disabled={loading}>
+          <Button type="button" variant="outline" size="sm" onClick={() => void refresh()} disabled={loading}>
             {loading ? (
               <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
             ) : (
@@ -190,7 +200,7 @@ export function DemoTranscriptPanel() {
 
         {!latestRun && !error ? (
           <div className="rounded-md border border-dashed border-border bg-muted p-4 font-mono text-sm text-muted-foreground">
-            No CLI demo run has been recorded yet.
+            Waiting for the next CLI demo run.
           </div>
         ) : null}
 
