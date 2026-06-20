@@ -55,10 +55,10 @@ SAFE is not trying to replace x402 or Solana allowances. SAFE sits between the a
 flowchart TB
   subgraph UI[Next.js app]
     Dashboard[Dashboard]
-    AgentRun[/api/agent/run]
-    Preflight[/api/preflight]
-    PolicyAPI[/api/policy]
-    AuditAPI[/api/audit]
+    AgentRun["/api/agent/run"]
+    Preflight["/api/preflight"]
+    PolicyAPI["/api/policy"]
+    AuditAPI["/api/audit"]
   end
 
   subgraph Policy[SAFE policy layer]
@@ -80,9 +80,9 @@ flowchart TB
   end
 
   subgraph Payments[x402 / facilitator layer]
-    X402Routes[/api/x402/* paid routes]
-    Verify[/api/facilitator/verify]
-    Settle[/api/facilitator/settle]
+    X402Routes["/api/x402/* paid routes"]
+    Verify["/api/facilitator/verify"]
+    Settle["/api/facilitator/settle"]
     PublicProbe[public x402 verify probe]
   end
 
@@ -292,18 +292,18 @@ Be careful: live mode spends real devnet USDC from the configured user allowance
 
 ```mermaid
 flowchart TB
-  Dashboard[Dashboard] --> AgentRun[/api/agent/run]
-  Dashboard --> Policy[/api/policy]
-  Dashboard --> Intent[/api/intent]
-  Dashboard --> Audit[/api/audit]
+  Dashboard[Dashboard] --> AgentRun["/api/agent/run"]
+  Dashboard --> Policy["/api/policy"]
+  Dashboard --> Intent["/api/intent"]
+  Dashboard --> Audit["/api/audit"]
 
-  AgentRun --> Stats[/api/x402/stats]
-  AgentRun --> Transit[/api/x402/transit]
-  AgentRun --> Food[/api/x402/food]
-  AgentRun --> Fake[/api/x402/fake-merch]
-  AgentRun --> Preflight[/api/preflight]
-  AgentRun --> Verify[/api/facilitator/verify]
-  AgentRun --> Settle[/api/facilitator/settle]
+  AgentRun --> Stats["/api/x402/stats"]
+  AgentRun --> Transit["/api/x402/transit"]
+  AgentRun --> Food["/api/x402/food"]
+  AgentRun --> Fake["/api/x402/fake-merch"]
+  AgentRun --> Preflight["/api/preflight"]
+  AgentRun --> Verify["/api/facilitator/verify"]
+  AgentRun --> Settle["/api/facilitator/settle"]
 ```
 
 ## Key Files
