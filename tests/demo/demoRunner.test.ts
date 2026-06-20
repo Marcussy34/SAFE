@@ -118,27 +118,27 @@ describe("runSafeDemo", () => {
     expect(memoryStore.listAudit()).toHaveLength(0);
   });
 
-  it("enforces a food-voucher-only prompt as a per-run firewall policy", async () => {
+  it("keeps the stats baseline for a food-voucher-only prompt", async () => {
     const run = await runSafeDemo({
       prompt: "$5 for food vouchers only.",
       dryRun: true,
       requireLive: false
     });
 
-    expect(run.generatedPolicy.allowedCategories).toEqual(["food_voucher"]);
-    expect(run.generatedPolicy.blockedCategories).toEqual(["match_data", "transit", "merch", "gambling", "unknown"]);
-    expect(run.generatedPolicy.allowedDomains).toEqual(["food-voucher.demo"]);
+    expect(run.generatedPolicy.allowedCategories).toEqual(["match_data", "food_voucher"]);
+    expect(run.generatedPolicy.blockedCategories).toEqual(["transit", "merch", "gambling", "unknown"]);
+    expect(run.generatedPolicy.allowedDomains).toEqual(["stats-api.demo", "food-voucher.demo"]);
 
     const approvedSteps = run.steps.filter(
       (step) => step.decision.action === "approve" || step.decision.action === "redact_and_approve"
     );
-    expect(approvedSteps.map((step) => step.id)).toEqual(["food-voucher"]);
-    expect(run.steps.find((step) => step.id === "match-data")?.decision.action).toBe("reject");
+    expect(approvedSteps.map((step) => step.id)).toEqual(["match-data", "food-voucher", "metadata-redaction"]);
+    expect(run.steps.find((step) => step.id === "match-data")?.decision.action).toBe("approve");
     expect(run.steps.find((step) => step.id === "transit")?.decision.action).toBe("reject");
     expect(run.summary).toMatchObject({
-      approved: 1,
-      blocked: 7,
-      redacted: 0,
+      approved: 2,
+      blocked: 5,
+      redacted: 1,
       settled: 0,
       failed: 0,
       dryRun: true
@@ -146,27 +146,27 @@ describe("runSafeDemo", () => {
     expect(memoryStore.listAudit()).toHaveLength(0);
   });
 
-  it("settles only the trusted merch merchant for a merch prompt", async () => {
+  it("keeps the stats baseline while approving trusted merch for a merch prompt", async () => {
     const run = await runSafeDemo({
       prompt: "$4 for merch and gambling",
       dryRun: true,
       requireLive: false
     });
 
-    expect(run.generatedPolicy.allowedCategories).toEqual(["merch", "gambling"]);
+    expect(run.generatedPolicy.allowedCategories).toEqual(["match_data", "merch", "gambling"]);
     expect(run.generatedPolicy.blockedCategories).toEqual([
-      "match_data",
       "transit",
       "food_voucher",
       "unknown"
     ]);
-    expect(run.generatedPolicy.allowedDomains).toEqual(["official-merch.demo"]);
+    expect(run.generatedPolicy.allowedDomains).toEqual(["stats-api.demo", "official-merch.demo"]);
+    expect(run.steps.find((step) => step.id === "match-data")?.decision.action).toBe("approve");
     expect(run.steps.find((step) => step.id === "official-merch")?.decision.action).toBe("approve");
     expect(run.steps.find((step) => step.id === "blocked-merch")?.decision.action).toBe("reject");
     expect(run.summary).toMatchObject({
-      approved: 1,
-      blocked: 7,
-      redacted: 0,
+      approved: 2,
+      blocked: 5,
+      redacted: 1,
       settled: 0,
       failed: 0,
       dryRun: true

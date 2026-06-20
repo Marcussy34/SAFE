@@ -15,8 +15,8 @@ SAFE means Spend Authorization Firewall for Agents. It is the payment boundary b
 - Agents can call SAFE directly over HTTP, through `lib/sdk/createSafeClient.ts`, or through the local CLI in `bin/safe.ts`.
 - `preflight` and `dryRun` are read-only. They do not write audit records and do not mutate replay state.
 - `pnpm safe demo` is CLI-first and spends live devnet by default when the server is configured for live mode. Use `--dry-run` for no settlement.
-- `pnpm safe demo --prompt ...` builds and enforces a per-run policy from the prompt, so "food vouchers only" blocks match data and transit for that run.
-- Merch prompts allow only `official-merch.demo`; `fake-merch.demo` stays blocked. Unsupported categories such as "gambling only" fail closed when no trusted merchant domain exists.
+- `pnpm safe demo --prompt ...` builds and enforces a per-run policy from the prompt. The generated policy keeps the baseline stats merchant `stats-api.demo` allowlisted unless the prompt explicitly blocks match data or stats.
+- Merch prompts still allow only the trusted merch merchant `official-merch.demo`; `fake-merch.demo` stays blocked. Unsupported categories such as "gambling only" keep only the baseline stats merchant unless stats are explicitly blocked.
 - A real `pay` call writes an audit record and settles only approved or redacted-approved decisions.
 - Approved live payments settle on Solana devnet and return a transaction signature plus Explorer URL.
 - Rejected requests produce no transaction.

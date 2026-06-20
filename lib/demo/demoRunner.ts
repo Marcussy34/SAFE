@@ -202,8 +202,18 @@ function categoriesFromPrompt(prompt: string): MerchantCategory[] {
     CATEGORY_PROMPT_RULES.filter((rule) => categoryAppearsAsBlocked(prompt, rule.patterns)).map((rule) => rule.category)
   );
   const baseline = explicitlyAllowed.length > 0 ? explicitlyAllowed : MATCH_DAY_ALLOWED_CATEGORIES;
+  const defaultAllowed = new Set<MerchantCategory>();
 
-  return baseline.filter((category) => !explicitlyBlocked.has(category));
+  // Stats is the baseline x402 demo resource. Keep it unless the prompt blocks it.
+  if (!explicitlyBlocked.has("match_data")) {
+    defaultAllowed.add("match_data");
+  }
+
+  for (const category of baseline) {
+    defaultAllowed.add(category);
+  }
+
+  return Array.from(defaultAllowed).filter((category) => !explicitlyBlocked.has(category));
 }
 
 function domainsForCategories(categories: MerchantCategory[]): string[] {
