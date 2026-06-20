@@ -86,7 +86,7 @@ describe("runWorldCupAgentScenario", () => {
     expect(approved).toHaveLength(4);
     expect(approved.every((attempt) => attempt.settlement?.settlementStatus === "failed")).toBe(true);
     expect(approved.every((attempt) => attempt.auditRecord.settlementStatus === "failed")).toBe(true);
-    expect(approved.every((attempt) => attempt.settlement?.error?.includes("SAFE_USER_SIGNER_BASE58"))).toBe(true);
+    expect(approved.every((attempt) => attempt.settlement?.error?.includes("SAFE_FACILITATOR_SECRET_BASE58"))).toBe(true);
     expect(blocked.every((attempt) => attempt.settlement === undefined)).toBe(true);
     expect(blocked.every((attempt) => attempt.auditRecord.settlementStatus === "not_attempted")).toBe(true);
   });

@@ -6,34 +6,35 @@ import { AuditTimeline } from "@/components/dashboard/AuditTimeline";
 import { PaymentFlowDiagram } from "@/components/dashboard/PaymentFlowDiagram";
 import { PolicyPanel } from "@/components/dashboard/PolicyPanel";
 import { StatusMetric } from "@/components/dashboard/StatusMetric";
+import { WalletAllowancePanel } from "@/components/dashboard/WalletAllowancePanel";
 
 export function SafeDashboard() {
   return (
-    <main className="min-h-screen bg-neutral-100 text-neutral-950">
+    <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-7xl space-y-5 px-4 py-4 sm:px-6 lg:px-8">
-        <header className="flex flex-col gap-3 border-b border-neutral-200 pb-4 lg:flex-row lg:items-end lg:justify-between">
+        <header className="flex flex-col gap-3 border-b border-border pb-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
-            <div className="text-xs font-medium uppercase tracking-wide text-neutral-500">SAFE</div>
-            <h1 className="mt-1 text-2xl font-semibold tracking-normal text-neutral-950 sm:text-3xl">
+            <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">SAFE</div>
+            <h1 className="mt-1 text-2xl font-semibold tracking-normal text-foreground sm:text-3xl">
               Spend Authorization Firewall for Agents
             </h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-600">
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
               Operational view for x402 agent payments, Solana allowance settlement, policy preflight,
               redaction, and audit outcomes.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-600">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <Link
               href="/docs"
-              className="inline-flex h-7 items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-2 font-medium text-neutral-700 transition hover:border-neutral-400 hover:text-neutral-950"
+              className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-card px-2 font-medium text-muted-foreground transition hover:border-foreground/40 hover:text-foreground"
             >
               <BookOpen className="size-3.5" />
               Docs
             </Link>
-            <span className="rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 font-medium text-emerald-700">
+            <span className="rounded-md border border-emerald-400/30 bg-emerald-400/10 px-2 py-1 font-medium text-emerald-300">
               Policy active
             </span>
-            <span className="rounded-md border border-sky-200 bg-sky-50 px-2 py-1 font-medium text-sky-700">
+            <span className="rounded-md border border-sky-400/30 bg-sky-400/10 px-2 py-1 font-medium text-sky-300">
               Devnet demo
             </span>
           </div>
@@ -62,6 +63,8 @@ export function SafeDashboard() {
             tone="emerald"
           />
         </section>
+
+        <WalletAllowancePanel />
 
         <section className="grid items-start gap-4 lg:grid-cols-[360px_minmax(0,1fr)]">
           <PolicyPanel />

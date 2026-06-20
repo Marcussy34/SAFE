@@ -1,11 +1,17 @@
+import type { PaymentPayload, PaymentRequirements } from "@x402/core/types";
 import { verifyAllowancePaymentOutcome } from "@/lib/facilitator/facilitatorVerifier";
+import {
+  createLocalX402PaymentRequirements,
+  settleLocalX402Payment,
+  verifyLocalX402Payment
+} from "@/lib/facilitator/localX402Facilitator";
 import { isLiveSolanaMode, solanaExplorerTxUrl } from "@/lib/solana/addresses";
-import { LIVE_SETTLEMENT_PREREQUISITE_ERROR } from "@/lib/solana/allowanceSettlement";
 import type { AllowanceVerificationResult, NormalizedPaymentRequest, X402AllowancePayload } from "@/lib/types";
 
 interface FacilitatorRequestBody {
   payload: X402AllowancePayload;
   paymentRequest: NormalizedPaymentRequest;
+  paymentRequirements?: PaymentRequirements;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -30,17 +36,6 @@ function demoSignatureFor(request: NormalizedPaymentRequest): string {
 export function createSettlementResponse(result: AllowanceVerificationResult, paymentRequest: NormalizedPaymentRequest) {
   if (!result.valid) {
     return Response.json({ result, settlementStatus: "failed" }, { status: 400 });
-  }
-
-  if (isLiveSolanaMode()) {
-    return Response.json(
-      {
-        error: LIVE_SETTLEMENT_PREREQUISITE_ERROR,
-        result,
-        settlementStatus: "failed"
-      },
-      { status: 501 }
-    );
   }
 
   const txSignature = demoSignatureFor(paymentRequest);
@@ -70,7 +65,10 @@ async function readFacilitatorRequestBody(request: Request): Promise<Facilitator
 
   return {
     payload: body.payload as unknown as X402AllowancePayload,
-    paymentRequest: body.paymentRequest as unknown as NormalizedPaymentRequest
+    paymentRequest: body.paymentRequest as unknown as NormalizedPaymentRequest,
+    paymentRequirements: isRecord(body.paymentRequirements)
+      ? (body.paymentRequirements as unknown as PaymentRequirements)
+      : undefined
   };
 }
 
@@ -79,6 +77,29 @@ export async function POST(request: Request) {
 
   if (!body) {
     return badRequest("Body must include payload and paymentRequest objects.");
+  }
+
+  if (isLiveSolanaMode()) {
+    const paymentRequirements =
+      body.paymentRequirements ?? (await createLocalX402PaymentRequirements(body.paymentRequest));
+    const verification = await verifyLocalX402Payment(body.payload as unknown as PaymentPayload, paymentRequirements);
+
+    if (!verification.isValid) {
+      return Response.json({ result: verification, settlementStatus: "failed" }, { status: 400 });
+    }
+
+    const settlement = await settleLocalX402Payment(body.payload as unknown as PaymentPayload, paymentRequirements);
+    const status = settlement.success ? 200 : 400;
+
+    return Response.json(
+      {
+        result: verification,
+        settlement,
+        settlementStatus: settlement.success ? "settled" : "failed",
+        explorerUrl: settlement.success ? solanaExplorerTxUrl(settlement.transaction) : undefined
+      },
+      { status }
+    );
   }
 
   const result = verifyAllowancePaymentOutcome(body.payload, body.paymentRequest);

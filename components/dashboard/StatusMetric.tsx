@@ -6,11 +6,11 @@ import { cn } from "@/lib/utils";
 type MetricTone = "neutral" | "emerald" | "sky" | "amber" | "red";
 
 const toneClasses: Record<MetricTone, string> = {
-  neutral: "bg-neutral-100 text-neutral-700 ring-neutral-200",
-  emerald: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  sky: "bg-sky-50 text-sky-700 ring-sky-200",
-  amber: "bg-amber-50 text-amber-700 ring-amber-200",
-  red: "bg-red-50 text-red-700 ring-red-200"
+  neutral: "bg-muted text-muted-foreground ring-border",
+  emerald: "bg-emerald-400/10 text-emerald-300 ring-emerald-400/30",
+  sky: "bg-sky-400/10 text-sky-300 ring-sky-400/30",
+  amber: "bg-amber-400/10 text-amber-300 ring-amber-400/30",
+  red: "bg-red-400/10 text-red-300 ring-red-400/30"
 };
 
 interface StatusMetricProps {
@@ -29,7 +29,7 @@ export function StatusMetric({
   tone = "neutral"
 }: StatusMetricProps) {
   return (
-    <Card className="rounded-md border border-neutral-200 bg-white shadow-none ring-0">
+    <Card className="rounded-md border border-border bg-card shadow-none ring-0">
       <CardContent className="flex min-h-28 gap-3 p-4">
         {Icon ? (
           <div
@@ -42,13 +42,13 @@ export function StatusMetric({
           </div>
         ) : null}
         <div className="min-w-0">
-          <div className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+          <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             {label}
           </div>
-          <div className="mt-1 truncate text-xl font-semibold text-neutral-950">
+          <div className="mt-1 truncate text-xl font-semibold text-foreground">
             {value}
           </div>
-          <div className="mt-1 text-sm leading-5 text-neutral-600">{detail}</div>
+          <div className="mt-1 text-sm leading-5 text-muted-foreground">{detail}</div>
         </div>
       </CardContent>
     </Card>

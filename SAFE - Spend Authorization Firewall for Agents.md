@@ -1441,14 +1441,21 @@ threshold.",
 
 ## **Appendix C. Devnet wiring notes**
 
-As of June 19, 2026, SAFE has a live devnet path for fixed allowance setup and allowance-backed settlement.
+As of June 19, 2026, SAFE has a live devnet developer-preview path for wallet-based fixed allowance setup and allowance-backed x402 settlement.
 
-Implemented commands:
+Implemented commands and UI paths:
 
 ```bash
 pnpm safe:devnet:balances
+
+# Preferred public-preview path:
+# Open the dashboard, connect a devnet wallet, initialize authority, then create allowance.
+
+# Legacy local smoke path:
 SAFE_DEMO_MODE=false pnpm safe:devnet:setup-allowance
 SAFE_DEMO_MODE=false pnpm safe:devnet:smoke
+
+# Compatibility probe:
 pnpm safe:x402:public:verify
 ```
 
@@ -1460,8 +1467,12 @@ Live wiring details:
 - Fixed delegation PDA: `9ju3GPL9UU156aGoZGvBmKWoroR3w55PqHZnKNDGkU9Z`.
 - Delegator ATA: `3Jh8WjHq6n84anFFuyxjZrNbJjjuXDWZz5vLLyEV8kzp`.
 - Delegatee: `jHyssKmcgJNrTK6uUJLhXEid4cZoEbwageg9SfFUzrg`.
-- Setup is idempotent: rerunning the setup command reuses the existing Subscription Authority and fixed delegation.
-- The smoke command submits a real `transferFixed` settlement with the facilitator/sponsor as fee payer.
+- Wallet setup is available through `/api/setup/allowance` and the dashboard setup panel.
+- The wallet setup path does not require `SAFE_USER_SIGNER_BASE58`; the connected wallet signs the user/delegator transactions.
+- `SAFE_SESSION_SECRET_BASE58` is still required for the SAFE delegatee/session signer.
+- `SAFE_FACILITATOR_SECRET_BASE58` is still required for the local x402 sponsor/facilitator signer.
+- The live agent path builds an allowance-backed x402 `exact` SVM payload, verifies it with a local `@x402/svm` facilitator configured for smart-wallet verification, allowlists the Solana Subscriptions program, and submits the sponsored transaction.
+- The legacy smoke command still submits a real `transferFixed` settlement with the facilitator/sponsor as fee payer.
 
 Verified devnet receipts:
 
@@ -1477,7 +1488,7 @@ Full live agent scenario receipts:
 - Redacted PII payment: `3U85hMxg9Tp8B99DadBUbPdyMQeTfV2a9mMhCsDfqtU9RVUY9325hvBb3WXtm9Vpt5YvPbqY3W8pwrGLCsJZY6kZ`.
 - Blocked without signing: fake merchant, duplicate stats request, and over-limit premium-feed request.
 
-Important demo boundary: SAFE uses a local/custom facilitator path for allowance-backed settlement. Public x402 facilitators may still require simulation-based SVM verification and a program allowlist before accepting Subscriptions/Allowances wrapper transactions.
+Important demo boundary: SAFE now uses a local/self-hosted x402 facilitator path for allowance-backed settlement. Public x402 facilitators may still require simulation-based SVM verification and a program allowlist before accepting Subscriptions/Allowances wrapper transactions.
 
 Public x402 facilitator probe on June 19, 2026:
 
@@ -1485,7 +1496,7 @@ Public x402 facilitator probe on June 19, 2026:
 - The facilitator advertises Solana devnet `exact` support with `smartWalletSupported: true`.
 - A standard direct-wallet x402 SVM payload verified successfully for official devnet USDC.
 - The SAFE allowance-backed `transferFixed` payload was rejected with `smart_wallet_program_not_allowed: De1egAFMkMWZSN5rYXRj9CAdheBamobVNubTsi9avR44`.
-- Conclusion: public x402 works for standard Solana wallet payments today, but SAFE allowance-backed Subscriptions settlement still needs a custom/self-hosted facilitator or a public facilitator configuration that allowlists the Solana Subscriptions/Allowances program.
+- Conclusion: public x402 works for standard Solana wallet payments today. SAFE allowance-backed Subscriptions settlement works through the local/self-hosted facilitator path and needs any third-party facilitator to allowlist the Solana Subscriptions/Allowances program.
 
 ## **Appendix D. Sources and references**
 

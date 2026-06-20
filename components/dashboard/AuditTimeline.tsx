@@ -40,38 +40,38 @@ function sortNewestFirst(records: AuditRecord[]) {
 
 function decisionClass(decision: string) {
   if (decision === "approve") {
-    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+    return "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
   }
 
   if (decision === "redact_and_approve") {
-    return "border-amber-200 bg-amber-50 text-amber-700";
+    return "border-amber-400/30 bg-amber-400/10 text-amber-300";
   }
 
-  return "border-red-200 bg-red-50 text-red-700";
+  return "border-red-400/30 bg-red-400/10 text-red-300";
 }
 
 function settlementClass(status: string) {
   if (status === "settled" || status === "verified") {
-    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+    return "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
   }
 
   if (status === "failed") {
-    return "border-red-200 bg-red-50 text-red-700";
+    return "border-red-400/30 bg-red-400/10 text-red-300";
   }
 
-  return "border-neutral-200 bg-neutral-50 text-neutral-700";
+  return "border-border bg-muted text-muted-foreground";
 }
 
 function StatusIcon({ record }: { record: AuditRecord }) {
   if (record.decision === "approve") {
-    return <CircleCheck className="size-4 text-emerald-600" aria-hidden="true" />;
+    return <CircleCheck className="size-4 text-emerald-400" aria-hidden="true" />;
   }
 
   if (record.decision === "redact_and_approve") {
-    return <ShieldAlert className="size-4 text-amber-600" aria-hidden="true" />;
+    return <ShieldAlert className="size-4 text-amber-400" aria-hidden="true" />;
   }
 
-  return <CircleX className="size-4 text-red-600" aria-hidden="true" />;
+  return <CircleX className="size-4 text-red-400" aria-hidden="true" />;
 }
 
 export function AuditTimeline() {
@@ -111,13 +111,13 @@ export function AuditTimeline() {
   }, []);
 
   return (
-    <Card className="rounded-md border border-neutral-200 bg-white shadow-none ring-0">
+    <Card className="rounded-md border border-border bg-card shadow-none ring-0">
       <CardHeader className="flex flex-row items-center justify-between gap-3">
         <CardTitle className="flex min-w-0 items-center gap-2 text-base">
-          <ReceiptText className="size-4 shrink-0 text-sky-600" aria-hidden="true" />
+          <ReceiptText className="size-4 shrink-0 text-sky-400" aria-hidden="true" />
           <span className="truncate">Audit Timeline</span>
         </CardTitle>
-        <Badge variant="outline" className="shrink-0 border-neutral-200 bg-neutral-50 text-neutral-700">
+        <Badge variant="outline" className="shrink-0 border-border bg-muted text-muted-foreground">
           {records.length} records
         </Badge>
       </CardHeader>
@@ -131,22 +131,22 @@ export function AuditTimeline() {
         ) : null}
 
         {records.length === 0 ? (
-          <div className="rounded-md border border-dashed border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-600">
+          <div className="rounded-md border border-dashed border-border bg-muted p-4 text-sm text-muted-foreground">
             No audit records yet.
           </div>
         ) : null}
 
         <div className="space-y-2">
           {records.map((record) => (
-            <div key={record.auditId} className="rounded-md border border-neutral-200 p-3 text-sm">
+            <div key={record.auditId} className="rounded-md border border-border p-3 text-sm">
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-50 ring-1 ring-neutral-200">
+                <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-muted ring-1 ring-border">
                   <StatusIcon record={record} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="min-w-0 truncate font-medium text-neutral-950">{record.merchantDomain}</div>
-                    <div className="font-medium text-neutral-800">{formatUsdc(record.amountUsdc)}</div>
+                    <div className="min-w-0 truncate font-medium text-foreground">{record.merchantDomain}</div>
+                    <div className="font-medium text-foreground">{formatUsdc(record.amountUsdc)}</div>
                   </div>
                   <div className="mt-1 flex flex-wrap gap-2">
                     <Badge variant="outline" className={decisionClass(record.decision)}>
@@ -154,7 +154,7 @@ export function AuditTimeline() {
                     </Badge>
                     <Badge
                       variant="outline"
-                      className="h-auto max-w-full whitespace-normal break-all border-neutral-200 bg-neutral-50 text-left leading-5 text-neutral-700"
+                      className="h-auto max-w-full whitespace-normal break-all border-border bg-muted text-left leading-5 text-muted-foreground"
                     >
                       {record.reasonCode}
                     </Badge>
@@ -162,7 +162,7 @@ export function AuditTimeline() {
                       {formatStatus(record.settlementStatus)}
                     </Badge>
                   </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-500">
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Clock3 className="size-3.5" aria-hidden="true" />
                       {formatTimestamp(record.timestamp)}

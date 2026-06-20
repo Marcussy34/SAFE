@@ -17,18 +17,19 @@ Facilitator = verifies and settles the signed payment transaction.
 
 What works now:
 
-- Live Solana devnet fixed allowance setup.
+- Wallet-based Solana devnet fixed allowance setup.
 - Live official devnet USDC settlement through Solana Subscriptions/Allowances.
 - Real `transferFixed` devnet transactions for approved agent payments.
 - SAFE policy checks for amount, merchant, recipient, category, duplicate requests, intent scope, and PII.
-- Mock/custom facilitator verification for allowance-backed settlement.
+- Local x402 SVM facilitator settlement with smart-wallet verification enabled.
+- Mock facilitator verification in demo mode.
 - Public x402 verification probe.
 
 Important x402 boundary:
 
 - Public x402 works for a standard direct Solana wallet payment.
-- Public x402 currently rejects SAFE's allowance-backed `transferFixed` wrapper because the public facilitator does not allowlist the Solana Subscriptions/Allowances program.
-- Therefore the hackathon demo should describe allowance-backed x402 settlement as requiring a custom/self-hosted or allowlisted facilitator.
+- SAFE's local facilitator allowlists the Solana Subscriptions/Allowances program and verifies inner token transfers.
+- Public x402 may still reject SAFE's allowance-backed `transferFixed` wrapper unless that public facilitator enables the same smart-wallet verification and program allowlist.
 
 ## System Context
 
@@ -40,7 +41,7 @@ flowchart LR
   PaidAPI -->|HTTP 402 payment requirements| Agent
   Agent -->|payment request| SAFE
   SAFE -->|approve / reject / redact| Agent
-  SAFE -->|approved settlement transaction| Facilitator[Custom/mock facilitator]
+  SAFE -->|approved x402 payload| Facilitator[Local x402 facilitator]
   Facilitator -->|simulate / submit| Solana
   Solana -->|receipt| Facilitator
   Facilitator -->|settlement result| SAFE
@@ -55,6 +56,8 @@ SAFE is not trying to replace x402 or Solana allowances. SAFE sits between the a
 flowchart TB
   subgraph UI[Next.js app]
     Dashboard[Dashboard]
+    Setup["/api/setup/allowance"]
+    Readiness["/api/readiness"]
     AgentRun["/api/agent/run"]
     Preflight["/api/preflight"]
     PolicyAPI["/api/policy"]
@@ -73,6 +76,7 @@ flowchart TB
   subgraph SolanaLayer[Solana layer]
     Runtime[runtimePreflight]
     LiveSettlement[liveSettlement]
+    WalletSetup[wallet allowance setup]
     AllowanceAdapter[allowance adapter]
     Subscriptions["@solana/subscriptions"]
     Token["@solana-program/token"]
@@ -83,9 +87,12 @@ flowchart TB
     X402Routes["/api/x402/* paid routes"]
     Verify["/api/facilitator/verify"]
     Settle["/api/facilitator/settle"]
+    LocalX402[local x402 facilitator]
     PublicProbe[public x402 verify probe]
   end
 
+  Setup --> WalletSetup
+  Readiness --> LocalX402
   AgentRun --> Normalizer
   Preflight --> Normalizer
   Normalizer --> Engine
@@ -95,12 +102,16 @@ flowchart TB
   Engine --> Audit
   Engine --> Runtime
   Runtime --> LiveSettlement
+  WalletSetup --> Subscriptions
+  WalletSetup --> Token
+  WalletSetup --> Kit
   LiveSettlement --> Subscriptions
   LiveSettlement --> Token
   LiveSettlement --> Kit
   AgentRun --> X402Routes
-  AgentRun --> Verify
-  AgentRun --> Settle
+  AgentRun --> LocalX402
+  Verify --> LocalX402
+  Settle --> LocalX402
   PublicProbe --> Payments
 ```
 
@@ -144,21 +155,29 @@ Onchain state enforces money constraints. Offchain policy enforces meaning.
 ```mermaid
 sequenceDiagram
   participant User as User/delegator wallet
-  participant SAFE as SAFE setup script
+  participant SAFE as SAFE setup UI
   participant Sub as Solana Subscriptions program
   participant Chain as Solana devnet
 
-  SAFE->>User: Load devnet user signer
+  User->>SAFE: Connect wallet
   SAFE->>Sub: Derive Subscription Authority PDA
   SAFE->>Sub: Derive Fixed Delegation PDA
-  SAFE->>Chain: initSubscriptionAuthority if missing
-  Chain-->>SAFE: init tx signature
-  SAFE->>Chain: createFixedDelegation if missing
-  Chain-->>SAFE: delegation tx signature
+  SAFE-->>User: Build initSubscriptionAuthority transaction
+  User->>Chain: Sign and send init transaction
+  Chain-->>SAFE: Confirm init tx signature
+  SAFE-->>User: Build createFixedDelegation transaction
+  User->>Chain: Sign and send delegation transaction
+  Chain-->>SAFE: Confirm delegation tx signature
   SAFE-->>User: Agent now has capped delegated spend
 ```
 
-Current command:
+Current primary path:
+
+```text
+Open the dashboard, connect a devnet wallet, initialize authority, then create allowance.
+```
+
+Legacy env-key smoke command:
 
 ```bash
 SAFE_DEMO_MODE=false pnpm safe:devnet:setup-allowance
@@ -172,7 +191,7 @@ sequenceDiagram
   participant API as x402 paid API
   participant SAFE as SAFE firewall
   participant Delegate as SAFE delegatee signer
-  participant Fac as Custom/mock facilitator
+  participant Fac as Local x402 facilitator
   participant Sub as Solana Subscriptions program
   participant Chain as Solana devnet
 
@@ -183,8 +202,8 @@ sequenceDiagram
   SAFE->>SAFE: Check policy, intent, merchant, replay, PII
   SAFE->>Delegate: Approved request may be signed
   Delegate->>SAFE: Partially signed transferFixed transaction
-  SAFE->>Fac: x402 payload with allowance-backed transaction
-  Fac->>Fac: Verify final token transfer outcome
+  SAFE->>Fac: x402 exact payload with allowance-backed transaction
+  Fac->>Fac: Simulate and verify inner TransferChecked
   Fac->>Chain: Submit sponsored transaction
   Chain->>Sub: Execute transferFixed
   Sub-->>Chain: Inner USDC TransferChecked
@@ -193,7 +212,7 @@ sequenceDiagram
   SAFE-->>Agent: Paid resource can be returned
 ```
 
-The facilitator should not pull funds from the allowance. The SAFE-approved delegatee signs the transaction. The facilitator verifies and submits it.
+The facilitator should not pull funds from the allowance. The SAFE-approved delegatee signs the transaction. The local x402 facilitator verifies, sponsors, submits, and confirms it.
 
 ## Blocked Payment Flow
 
@@ -282,17 +301,20 @@ flowchart LR
 
   Live --> Devnet[Solana devnet RPC]
   Live --> RealAllowance[Real fixed delegation]
-  Live --> RealTransfer[Real transferFixed USDC settlement]
+  Live --> LocalFacilitator[Local x402 smart-wallet facilitator]
+  LocalFacilitator --> RealTransfer[Real transferFixed USDC settlement]
   Live --> RealReceipts[Explorer receipts]
 ```
 
-Be careful: live mode spends real devnet USDC from the configured user allowance.
+Be careful: live mode spends real devnet USDC from the connected wallet allowance.
 
 ## API Surface
 
 ```mermaid
 flowchart TB
   Dashboard[Dashboard] --> AgentRun["/api/agent/run"]
+  Dashboard --> Readiness["/api/readiness"]
+  Dashboard --> Setup["/api/setup/allowance"]
   Dashboard --> Policy["/api/policy"]
   Dashboard --> Intent["/api/intent"]
   Dashboard --> Audit["/api/audit"]
@@ -304,6 +326,8 @@ flowchart TB
   AgentRun --> Preflight["/api/preflight"]
   AgentRun --> Verify["/api/facilitator/verify"]
   AgentRun --> Settle["/api/facilitator/settle"]
+  Verify --> LocalFacilitator["local x402 facilitator"]
+  Settle --> LocalFacilitator
 ```
 
 ## Key Files
@@ -314,8 +338,11 @@ flowchart TB
 | Policy engine | `lib/policy/policyEngine.ts` |
 | x402 requirements | `lib/x402/paymentRequirements.ts` |
 | Mock x402 payload | `lib/x402/x402Payload.ts` |
-| Custom/mock verifier | `lib/facilitator/facilitatorVerifier.ts` |
+| Demo verifier | `lib/facilitator/facilitatorVerifier.ts` |
+| Local x402 facilitator | `lib/facilitator/localX402Facilitator.ts` |
+| Wallet allowance setup | `lib/solana/walletAllowanceSetup.ts` |
 | Live Solana settlement | `lib/solana/liveSettlement.ts` |
+| Readiness checks | `lib/runtime/readiness.ts` |
 | Runtime live preflight | `lib/solana/runtimePreflight.ts` |
 | Merchant registry | `lib/fixtures/merchants.ts` |
 | Devnet scripts | `scripts/devnet/*` |
@@ -324,6 +351,7 @@ flowchart TB
 
 ```bash
 pnpm safe:devnet:balances
+# Or use the dashboard wallet setup panel.
 SAFE_DEMO_MODE=false pnpm safe:devnet:setup-allowance
 SAFE_DEMO_MODE=false pnpm safe:devnet:smoke
 pnpm safe:x402:public:verify

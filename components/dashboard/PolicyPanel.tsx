@@ -34,36 +34,36 @@ export function PolicyPanel() {
   const replay = DEMO_POLICY.replayPolicy;
 
   return (
-    <Card className="rounded-md border border-neutral-200 bg-white shadow-none ring-0">
+    <Card className="rounded-md border border-border bg-card shadow-none ring-0">
       <CardHeader className="gap-2">
         <div className="flex items-center justify-between gap-3">
           <CardTitle className="flex min-w-0 items-center gap-2 text-base">
-            <ShieldCheck className="size-4 shrink-0 text-emerald-600" aria-hidden="true" />
+            <ShieldCheck className="size-4 shrink-0 text-emerald-400" aria-hidden="true" />
             <span className="truncate">Active Policy</span>
           </CardTitle>
-          <Badge variant="outline" className="shrink-0 border-emerald-200 bg-emerald-50 text-emerald-700">
+          <Badge variant="outline" className="shrink-0 border-emerald-400/30 bg-emerald-400/10 text-emerald-300">
             Enforced
           </Badge>
         </div>
-        <div className="break-all text-xs text-neutral-500">{DEMO_POLICY.policyId}</div>
+        <div className="break-all text-xs text-muted-foreground">{DEMO_POLICY.policyId}</div>
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-md border border-neutral-200 bg-neutral-50 p-3">
-            <div className="text-xs text-neutral-500">Total cap</div>
-            <div className="mt-1 font-medium text-neutral-950">{formatUsdc(DEMO_POLICY.totalCapUsdc)}</div>
+          <div className="rounded-md border border-border bg-muted p-3">
+            <div className="text-xs text-muted-foreground">Total cap</div>
+            <div className="mt-1 font-medium text-foreground">{formatUsdc(DEMO_POLICY.totalCapUsdc)}</div>
           </div>
-          <div className="rounded-md border border-neutral-200 bg-neutral-50 p-3">
-            <div className="text-xs text-neutral-500">Per payment</div>
-            <div className="mt-1 font-medium text-neutral-950">{formatUsdc(DEMO_POLICY.perPaymentCapUsdc)}</div>
+          <div className="rounded-md border border-border bg-muted p-3">
+            <div className="text-xs text-muted-foreground">Per payment</div>
+            <div className="mt-1 font-medium text-foreground">{formatUsdc(DEMO_POLICY.perPaymentCapUsdc)}</div>
           </div>
-          <div className="rounded-md border border-neutral-200 bg-neutral-50 p-3">
-            <div className="text-xs text-neutral-500">Per merchant</div>
-            <div className="mt-1 font-medium text-neutral-950">{formatUsdc(DEMO_POLICY.perMerchantCapUsdc)}</div>
+          <div className="rounded-md border border-border bg-muted p-3">
+            <div className="text-xs text-muted-foreground">Per merchant</div>
+            <div className="mt-1 font-medium text-foreground">{formatUsdc(DEMO_POLICY.perMerchantCapUsdc)}</div>
           </div>
-          <div className="rounded-md border border-neutral-200 bg-neutral-50 p-3">
-            <div className="text-xs text-neutral-500">Human review</div>
-            <div className="mt-1 font-medium text-neutral-950">
+          <div className="rounded-md border border-border bg-muted p-3">
+            <div className="text-xs text-muted-foreground">Human review</div>
+            <div className="mt-1 font-medium text-foreground">
               Above {formatUsdc(DEMO_POLICY.requireHumanApprovalAboveUsdc)}
             </div>
           </div>
@@ -72,26 +72,26 @@ export function PolicyPanel() {
         <Separator />
 
         <div className="space-y-3">
-          <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-neutral-500">
-            <Gauge className="size-3.5 text-sky-600" aria-hidden="true" />
+          <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <Gauge className="size-3.5 text-sky-400" aria-hidden="true" />
             Allowance
           </div>
           <div className="grid gap-2 text-sm">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-neutral-500">Type</span>
-              <span className="min-w-0 flex-1 text-right font-medium capitalize text-neutral-950">
+              <span className="text-muted-foreground">Type</span>
+              <span className="min-w-0 flex-1 text-right font-medium capitalize text-foreground">
                 {DEMO_POLICY.allowance.type}
               </span>
             </div>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-neutral-500">Remaining</span>
-              <span className="min-w-0 flex-1 text-right font-medium text-neutral-950">
+              <span className="text-muted-foreground">Remaining</span>
+              <span className="min-w-0 flex-1 text-right font-medium text-foreground">
                 {formatAtomicUsdc(DEMO_POLICY.allowance.remainingAtomicUnits)}
               </span>
             </div>
             <div className="flex items-start justify-between gap-3">
-              <span className="shrink-0 text-neutral-500">Network</span>
-              <span className="min-w-0 flex-1 break-all text-right font-medium text-neutral-950">
+              <span className="shrink-0 text-muted-foreground">Network</span>
+              <span className="min-w-0 flex-1 break-all text-right font-medium text-foreground">
                 {DEMO_POLICY.network}
               </span>
             </div>
@@ -101,8 +101,8 @@ export function PolicyPanel() {
         <Separator />
 
         <div>
-          <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-neutral-500">
-            <CheckCircle className="size-3.5 text-emerald-600" aria-hidden="true" />
+          <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <CheckCircle className="size-3.5 text-emerald-400" aria-hidden="true" />
             Allowed categories
           </div>
           <div className="flex flex-wrap gap-2">
@@ -110,7 +110,7 @@ export function PolicyPanel() {
               <Badge
                 key={category}
                 variant="outline"
-                className="border-emerald-200 bg-emerald-50 text-emerald-700"
+                className="border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
               >
                 {formatCategory(category)}
               </Badge>
@@ -119,13 +119,13 @@ export function PolicyPanel() {
         </div>
 
         <div>
-          <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-neutral-500">
-            <Ban className="size-3.5 text-red-600" aria-hidden="true" />
+          <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <Ban className="size-3.5 text-red-400" aria-hidden="true" />
             Blocked categories
           </div>
           <div className="flex flex-wrap gap-2">
             {DEMO_POLICY.blockedCategories.map((category) => (
-              <Badge key={category} variant="outline" className="border-red-200 bg-red-50 text-red-700">
+              <Badge key={category} variant="outline" className="border-red-400/30 bg-red-400/10 text-red-300">
                 {formatCategory(category)}
               </Badge>
             ))}
@@ -133,10 +133,10 @@ export function PolicyPanel() {
         </div>
 
         <div>
-          <div className="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">Allowed domains</div>
+          <div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Allowed domains</div>
           <div className="flex flex-wrap gap-2">
             {DEMO_POLICY.allowedDomains.map((domain) => (
-              <Badge key={domain} variant="outline" className="border-sky-200 bg-sky-50 text-sky-700">
+              <Badge key={domain} variant="outline" className="border-sky-400/30 bg-sky-400/10 text-sky-300">
                 {domain}
               </Badge>
             ))}
@@ -147,10 +147,10 @@ export function PolicyPanel() {
 
         <div className="grid gap-2">
           <div className="flex items-start gap-2">
-            <Fingerprint className="mt-0.5 size-4 shrink-0 text-amber-600" aria-hidden="true" />
+            <Fingerprint className="mt-0.5 size-4 shrink-0 text-amber-400" aria-hidden="true" />
             <div className="min-w-0">
-              <div className="font-medium text-neutral-950">Replay guard</div>
-              <div className="text-xs leading-5 text-neutral-600">
+              <div className="font-medium text-foreground">Replay guard</div>
+              <div className="text-xs leading-5 text-muted-foreground">
                 {replay.idempotencyWindowSeconds}s window. Payment hash{" "}
                 {formatBoolean(replay.blockDuplicatePaymentHash).toLowerCase()}, resource fingerprint{" "}
                 {formatBoolean(replay.blockDuplicateResourceRequest).toLowerCase()}.
@@ -158,10 +158,10 @@ export function PolicyPanel() {
             </div>
           </div>
           <div className="flex items-start gap-2">
-            <LockKeyhole className="mt-0.5 size-4 shrink-0 text-sky-600" aria-hidden="true" />
+            <LockKeyhole className="mt-0.5 size-4 shrink-0 text-sky-400" aria-hidden="true" />
             <div className="min-w-0">
-              <div className="font-medium text-neutral-950">PII guard</div>
-              <div className="text-xs leading-5 text-neutral-600">
+              <div className="font-medium text-foreground">PII guard</div>
+              <div className="text-xs leading-5 text-muted-foreground">
                 {DEMO_POLICY.piiPolicy.mode.replaceAll("_", " ")} for{" "}
                 {DEMO_POLICY.piiPolicy.blockedEntities.join(", ")}.
               </div>

@@ -6,3 +6,4 @@ build
 *.tsbuildinfo
 .env*.local
 .playwright-cli/
+.firecrawl/

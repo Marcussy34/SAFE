@@ -1,11 +1,16 @@
 import { createAuditRecord } from "@/lib/audit/auditLog";
 import { usdcToAtomicUnits } from "@/lib/constants";
 import { verifyAllowancePaymentOutcome } from "@/lib/facilitator/facilitatorVerifier";
+import {
+  createLocalX402PaymentRequirements,
+  settleLocalX402Payment,
+  verifyLocalX402Payment
+} from "@/lib/facilitator/localX402Facilitator";
 import { evaluatePolicy } from "@/lib/policy/policyEngine";
 import { createRequestFingerprint } from "@/lib/policy/requestFingerprint";
 import { isLiveSolanaMode, solanaExplorerTxUrl } from "@/lib/solana/addresses";
 import { buildAllowanceBackedPaymentPayload } from "@/lib/solana/allowanceSettlement";
-import { settleLiveAllowancePayment } from "@/lib/solana/liveSettlement";
+import { buildPublicX402AllowancePayload } from "@/lib/solana/liveSettlement";
 import { prepareRuntimePreflightContext } from "@/lib/solana/runtimePreflight";
 import { memoryStore } from "@/lib/store/memoryStore";
 import type { AuditRecord, NormalizedPaymentRequest, PolicyDecision, SpendPolicy } from "@/lib/types";
@@ -60,7 +65,32 @@ async function settleApprovedDecision(decision: PolicyDecision): Promise<AgentSe
 
   try {
     if (isLiveSolanaMode()) {
-      return await settleLiveAllowancePayment(decision.sanitizedRequest);
+      const paymentRequirements = await createLocalX402PaymentRequirements(decision.sanitizedRequest);
+      const { paymentPayload } = await buildPublicX402AllowancePayload(decision.sanitizedRequest, paymentRequirements);
+      const verification = await verifyLocalX402Payment(paymentPayload, paymentRequirements);
+
+      if (!verification.isValid) {
+        return {
+          settlementStatus: "failed",
+          error: verification.invalidReason ?? "x402_verification_failed"
+        };
+      }
+
+      // The local facilitator supplies the sponsor signature and submits the x402 payload.
+      const settlement = await settleLocalX402Payment(paymentPayload, paymentRequirements);
+
+      if (!settlement.success) {
+        return {
+          settlementStatus: "failed",
+          error: settlement.errorReason ?? settlement.errorMessage ?? "x402_settlement_failed"
+        };
+      }
+
+      return {
+        settlementStatus: "settled",
+        txSignature: settlement.transaction,
+        explorerUrl: solanaExplorerTxUrl(settlement.transaction)
+      };
     }
 
     const payload = buildAllowanceBackedPaymentPayload(decision.sanitizedRequest);

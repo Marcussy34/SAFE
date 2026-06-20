@@ -72,37 +72,45 @@ const onThisPage = [
 const quickstartCommands = `pnpm install
 pnpm dev
 
-# Check configured devnet balances
+# Check configured devnet balances for env-based smoke scripts
 pnpm safe:devnet:balances
 
-# Create/reuse the fixed allowance
+# Option A: create the allowance from the dashboard wallet setup panel
+open http://localhost:3000
+
+# Option B: create/reuse the fixed allowance from local env keys
 SAFE_DEMO_MODE=false pnpm safe:devnet:setup-allowance
 
-# Submit one real devnet allowance-backed settlement
-SAFE_DEMO_MODE=false pnpm safe:devnet:smoke
+# Run the agent through SAFE and the local x402 facilitator
+SAFE_DEMO_MODE=false pnpm dev
 
 # Probe public x402 verification compatibility
 pnpm safe:x402:public:verify`;
 
 const envRows = [
+  ["NEXT_PUBLIC_SOLANA_RPC_URL", "Browser wallet RPC endpoint. Safe to expose when it has no secret token."],
   ["SOLANA_RPC_URL", "Devnet RPC endpoint used by the app and scripts."],
   ["SOLANA_RPC_WS_URL", "Optional websocket endpoint for confirmation subscriptions."],
   ["SAFE_DEMO_MODE", "`true` for mock mode, `false` for live devnet settlement."],
   ["SAFE_DEMO_MINT", "Official devnet USDC mint used by the demo."],
-  ["SAFE_USER_SIGNER_BASE58", "User/delegator keypair. Keep this local only."],
-  ["SAFE_SESSION_SECRET_BASE58", "Agent/delegatee keypair. Keep this local only."],
-  ["SAFE_FACILITATOR_SECRET_BASE58", "Transaction sponsor keypair. Keep this local only."]
+  ["SAFE_SESSION_SECRET_BASE58", "Server-side agent/delegatee keypair used to sign transferFixed."],
+  ["SAFE_FACILITATOR_SECRET_BASE58", "Server-side local x402 facilitator sponsor keypair."],
+  ["SAFE_USER_SIGNER_BASE58", "Optional legacy user/delegator keypair for local smoke scripts only."],
+  ["SAFE_DELEGATEE_ADDRESS", "Optional delegatee address for wallet setup when the delegatee secret is not present."]
 ];
 
 const apiRows = [
+  ["GET", "/api/readiness", "Returns runtime, RPC, facilitator, and signer readiness checks."],
+  ["GET", "/api/setup/allowance", "Returns wallet-derived allowance status for a connected user."],
+  ["POST", "/api/setup/allowance", "Builds wallet-signed init/create allowance transactions."],
   ["GET", "/api/x402/stats", "Returns a match-data x402 payment challenge."],
   ["GET", "/api/x402/transit", "Returns a transit x402 payment challenge."],
   ["GET", "/api/x402/food", "Returns a food voucher x402 payment challenge."],
   ["GET", "/api/x402/fake-merch", "Blocked merchant scenario for the firewall demo."],
   ["POST", "/api/preflight", "Normalizes payment requirements and evaluates SAFE policy."],
-  ["POST", "/api/facilitator/verify", "Mock/custom verifier for allowance-backed x402 payloads."],
-  ["POST", "/api/facilitator/settle", "Mock/custom settlement endpoint for approved payments."],
-  ["GET", "/api/agent/run", "Runs the scripted World Cup agent scenario."]
+  ["POST", "/api/facilitator/verify", "Demo verifier or live local x402 SVM smart-wallet verifier."],
+  ["POST", "/api/facilitator/settle", "Demo settlement or live local x402 facilitator settlement."],
+  ["POST", "/api/agent/run", "Runs the scripted World Cup agent scenario."]
 ];
 
 function Section({
@@ -246,22 +254,22 @@ export default function DocsPage() {
             <div className="mt-8 grid gap-3 md:grid-cols-3">
               <StatBlock icon={Coins} label="Settlement" value="Real devnet USDC" tone="sky" />
               <StatBlock icon={ShieldCheck} label="Firewall" value="Pre-signing policy" tone="emerald" />
-              <StatBlock icon={Network} label="Protocol" value="x402-style exact SVM" tone="amber" />
+              <StatBlock icon={Network} label="Protocol" value="x402 exact SVM" tone="amber" />
             </div>
           </section>
 
           <Section id="current-state" eyebrow="Status" title="Current State">
             <p>
               SAFE is a working hackathon demo with real Solana devnet allowance settlement. It uses official devnet USDC,
-              Solana Subscriptions/Allowances, and a SAFE policy layer that checks merchant, amount, category, replay, PII,
-              recipient, and AP2-style intent constraints before signing.
+              Solana Subscriptions/Allowances, a wallet-based allowance setup path, and a SAFE policy layer that checks
+              merchant, amount, category, replay, PII, recipient, and AP2-style intent constraints before signing.
             </p>
             <div className="grid gap-3 md:grid-cols-2">
               {[
-                ["Live on devnet", "Fixed delegation setup and transferFixed settlement are wired."],
+                ["Live on devnet", "Wallet allowance setup and transferFixed settlement are wired."],
+                ["Local x402 facilitator", "Smart-wallet verification allowlists the Subscriptions program."],
                 ["Public x402 probed", "Direct wallet x402 verifies publicly; allowance wrapper needs allowlisting."],
-                ["Policy-first", "Unsafe requests stop before the delegatee signs."],
-                ["Not mainnet", "This is a devnet demo, not production payment infrastructure."]
+                ["Not mainnet", "This is a devnet developer preview, not production payment infrastructure."]
               ].map(([title, body]) => (
                 <div key={title} className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
                   <CheckCircle2 className="size-4 text-emerald-300" />
@@ -273,12 +281,16 @@ export default function DocsPage() {
           </Section>
 
           <Section id="quickstart" eyebrow="Run" title="Quickstart">
-            <p>Use demo mode for UI review. Use live mode only when the devnet wallets and official devnet USDC are funded.</p>
+            <p>
+              Use demo mode for UI review. For live devnet, connect a wallet in the dashboard, initialize the allowance,
+              create the fixed delegation, then run the agent.
+            </p>
             <CodeBlock>{quickstartCommands}</CodeBlock>
             <div className="flex gap-3 rounded-lg border border-amber-400/20 bg-amber-400/10 p-4 text-amber-100">
               <AlertTriangle className="mt-0.5 size-4 shrink-0" />
               <p className="text-sm leading-6">
-                Live mode spends devnet USDC from the configured user allowance. Keep private keys in `.env.local` only.
+                Live mode spends devnet USDC from the connected wallet allowance. Keep server delegatee and facilitator keys
+                in `.env.local` only.
               </p>
             </div>
           </Section>
@@ -349,8 +361,8 @@ export default function DocsPage() {
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-sky-200">SAFE_DEMO_MODE=false</td>
-                    <td className="px-4 py-3">Uses real Solana devnet settlement.</td>
-                    <td className="px-4 py-3">Hackathon proof with explorer receipts.</td>
+                    <td className="px-4 py-3">Uses wallet-created allowances and local x402 facilitator settlement.</td>
+                    <td className="px-4 py-3">Developer preview with explorer receipts.</td>
                   </tr>
                 </tbody>
               </table>
@@ -359,7 +371,7 @@ export default function DocsPage() {
 
           <Section id="solana-allowances" eyebrow="Solana" title="Solana Allowances">
             <p>
-              The user creates a fixed allowance to the SAFE session signer. Approved payments call the Solana
+              The user creates a fixed allowance to the SAFE session signer from the dashboard wallet setup panel. Approved payments call the Solana
               Subscriptions/Allowances program through `transferFixed`, moving USDC from the user token account to the
               merchant associated token account.
             </p>
@@ -371,8 +383,8 @@ Rail:    x402_solana_allowance_devnet`}</CodeBlock>
           <Section id="x402-boundary" eyebrow="Protocol" title="x402 Boundary">
             <p>
               x402 works publicly for direct Solana wallet payments. SAFE allowance-backed transactions are different:
-              it calls the Subscriptions program, which emits the token transfer as an inner instruction. A facilitator
-              must support simulation-based verification and allowlist the Subscriptions program.
+              they call the Subscriptions program, which emits the token transfer as an inner instruction. SAFE now runs
+              a local x402 SVM facilitator with simulation-based verification and the Subscriptions program allowlisted.
             </p>
             <div className="grid gap-3 md:grid-cols-2">
               <div className="rounded-lg border border-emerald-400/20 bg-emerald-400/10 p-4">
@@ -383,7 +395,7 @@ Rail:    x402_solana_allowance_devnet`}</CodeBlock>
               <div className="rounded-lg border border-amber-400/20 bg-amber-400/10 p-4">
                 <AlertTriangle className="size-4 text-amber-200" />
                 <h3 className="mt-3 text-sm font-semibold text-white">SAFE allowance wrapper</h3>
-                <p className="mt-1 text-sm text-zinc-300">Rejected publicly until the Subscriptions program is allowlisted.</p>
+                <p className="mt-1 text-sm text-zinc-300">Verified locally; public facilitators need the same allowlist.</p>
               </div>
             </div>
           </Section>
@@ -407,7 +419,7 @@ Rail:    x402_solana_allowance_devnet`}</CodeBlock>
                 </thead>
                 <tbody className="divide-y divide-white/10 text-zinc-300">
                   {apiRows.map(([method, route, purpose]) => (
-                    <tr key={route}>
+                    <tr key={`${method}:${route}`}>
                       <td className="px-4 py-3 font-mono text-xs text-emerald-200">{method}</td>
                       <td className="px-4 py-3 font-mono text-xs text-zinc-100">{route}</td>
                       <td className="px-4 py-3">{purpose}</td>
@@ -444,8 +456,8 @@ Rail:    x402_solana_allowance_devnet`}</CodeBlock>
               <div className="rounded-lg border border-emerald-400/20 bg-emerald-400/10 p-4">
                 <h3 className="text-sm font-semibold text-white">Say this</h3>
                 <p className="mt-2 text-sm text-zinc-300">
-                  SAFE is a working Solana devnet agent-payment firewall using real allowances, real USDC settlement,
-                  x402-style paid API flow, and AP2-style intent enforcement.
+                  SAFE is a working Solana devnet agent-payment firewall using wallet-created allowances, real USDC settlement,
+                  local x402 exact SVM facilitator settlement, and AP2-style intent enforcement.
                 </p>
               </div>
               <div className="rounded-lg border border-red-400/20 bg-red-400/10 p-4">
