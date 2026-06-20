@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
+    "safe": "tsx bin/safe.ts",
     "safe:devnet:balances": "tsx scripts/devnet/check-balances.ts",
     "safe:devnet:setup-token": "tsx scripts/devnet/setup-demo-token.ts",
     "safe:devnet:setup-allowance": "tsx scripts/devnet/setup-fixed-allowance.ts",

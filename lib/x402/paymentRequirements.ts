@@ -111,6 +111,17 @@ export function createDemoPaymentRequirement(domain: string, resourcePath: strin
   return requirementForMerchant(merchant, resourcePath, taskId);
 }
 
+export function withDemoPaymentAmount(requirement: DemoPaymentRequirement, amountUsdc: number): DemoPaymentRequirement {
+  return {
+    ...requirement,
+    amount: usdcToAtomicUnits(amountUsdc),
+    extra: {
+      ...requirement.extra,
+      amountUsdc
+    }
+  };
+}
+
 export function createPaymentRequiredBody(requirement: DemoPaymentRequirement): DemoPaymentRequiredBody {
   return {
     x402Version: 2,

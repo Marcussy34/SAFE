@@ -20,6 +20,7 @@ What works now:
 - Wallet-based Solana devnet fixed allowance setup.
 - Live official devnet USDC settlement through Solana Subscriptions/Allowances.
 - Real `transferFixed` devnet transactions for approved agent payments.
+- External agent integration through `/api/safe/*`, a thin TypeScript SDK, and a local CLI.
 - SAFE policy checks for amount, merchant, recipient, category, duplicate requests, intent scope, and PII.
 - Local x402 SVM facilitator settlement with smart-wallet verification enabled.
 - Mock facilitator verification in demo mode.
@@ -60,11 +61,19 @@ flowchart TB
     Readiness["/api/readiness"]
     AgentRun["/api/agent/run"]
     Preflight["/api/preflight"]
+    SafeAPI["/api/safe/preflight<br/>/api/safe/pay<br/>/api/safe/state<br/>/api/safe/audit"]
     PolicyAPI["/api/policy"]
     AuditAPI["/api/audit"]
   end
 
+  subgraph External[External integration]
+    BasicAgent["examples/basic-agent"]
+    SDK["createSafeClient"]
+    CLI["bin/safe.ts"]
+  end
+
   subgraph Policy[SAFE policy layer]
+    SafeService[safePaymentService]
     Normalizer[x402 payment normalizer]
     Engine[policyEngine]
     Replay[replay guard]
@@ -94,6 +103,11 @@ flowchart TB
   Setup --> WalletSetup
   Readiness --> LocalX402
   AgentRun --> Normalizer
+  BasicAgent --> SDK
+  CLI --> SDK
+  SDK --> SafeAPI
+  SafeAPI --> SafeService
+  SafeService --> Normalizer
   Preflight --> Normalizer
   Normalizer --> Engine
   Engine --> Replay
@@ -183,6 +197,28 @@ Legacy env-key smoke command:
 
 ```bash
 SAFE_DEMO_MODE=false pnpm safe:devnet:setup-allowance
+```
+
+## External Agent API
+
+External agents should use the SAFE HTTP API instead of importing the scripted dashboard agent.
+
+```text
+POST /api/safe/preflight
+POST /api/safe/pay
+GET  /api/safe/state
+GET  /api/safe/audit
+```
+
+`/api/safe/preflight` is advisory only. It normalizes the x402 requirement and evaluates policy with a read-only replay check. It does not settle, write audit records, or remember replay state.
+
+`/api/safe/pay` is the real execution path. It can fetch a local x402 resource URL, parse the `402` challenge, evaluate SAFE policy, settle approved or redacted decisions, write audit records, and return the paid resource response. `dryRun: true` uses the same policy path but does not settle, write audit records, or mutate replay state.
+
+Local wrappers:
+
+```bash
+./node_modules/.bin/tsx examples/basic-agent/run.ts --dry-run
+./node_modules/.bin/tsx bin/safe.ts pay http://localhost:3000/api/x402/stats --dry-run
 ```
 
 ## Approved Payment Flow

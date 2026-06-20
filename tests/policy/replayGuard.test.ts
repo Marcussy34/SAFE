@@ -43,4 +43,16 @@ describe("ReplayGuard", () => {
 
     expect(repeatedOriginal.duplicate).toBe(true);
   });
+
+  it("can check replay status without remembering advisory preflight requests", () => {
+    const guard = new ReplayGuard();
+
+    const advisory = guard.check("stats-api.demo:20000:match", "hash-a", 300, 1000);
+    const firstPayment = guard.checkAndRemember("stats-api.demo:20000:match", "hash-a", 300, 1100);
+    const duplicatePayment = guard.checkAndRemember("stats-api.demo:20000:match", "hash-a", 300, 1200);
+
+    expect(advisory.duplicate).toBe(false);
+    expect(firstPayment.duplicate).toBe(false);
+    expect(duplicatePayment.duplicate).toBe(true);
+  });
 });

@@ -12,7 +12,7 @@ interface SeenRequest {
 export class ReplayGuard {
   private readonly seen = new Map<string, Map<string, SeenRequest>>();
 
-  checkAndRemember(
+  check(
     fingerprint: string,
     requestHash: string,
     windowSeconds: number,
@@ -22,17 +22,38 @@ export class ReplayGuard {
 
     const hashesForFingerprint = this.seen.get(fingerprint) ?? new Map<string, SeenRequest>();
     const existing = hashesForFingerprint.get(requestHash);
+
     if (existing && existing.expiresAtMs > nowMs) {
       return { duplicate: true, duplicateFingerprint: true, fingerprint, requestHash };
     }
 
-    const duplicateFingerprint = hashesForFingerprint.size > 0;
+    return {
+      duplicate: false,
+      duplicateFingerprint: hashesForFingerprint.size > 0,
+      fingerprint,
+      requestHash
+    };
+  }
+
+  checkAndRemember(
+    fingerprint: string,
+    requestHash: string,
+    windowSeconds: number,
+    nowMs = Date.now()
+  ): ReplayCheckResult {
+    const replay = this.check(fingerprint, requestHash, windowSeconds, nowMs);
+
+    if (replay.duplicate) {
+      return replay;
+    }
+
+    const hashesForFingerprint = this.seen.get(fingerprint) ?? new Map<string, SeenRequest>();
     hashesForFingerprint.set(requestHash, {
       expiresAtMs: nowMs + windowSeconds * 1000
     });
     this.seen.set(fingerprint, hashesForFingerprint);
 
-    return { duplicate: false, duplicateFingerprint, fingerprint, requestHash };
+    return replay;
   }
 
   private prune(nowMs: number) {
