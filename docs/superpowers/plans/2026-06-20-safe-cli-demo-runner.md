@@ -22,7 +22,7 @@
 - Modify: `components/dashboard/SafeDashboard.tsx` — place the transcript near the live demo section.
 - Test: `tests/demo/demoRunner.test.ts` — runner behavior, dry-run behavior, live guard behavior, transcript storage.
 - Test: `tests/sdk/createSafeClient.test.ts` — SDK route calls for demo run/state.
-- Update docs: `architecture.md` and `skills/safe-agent-payments/SKILL.md` CLI/API sections.
+- Update docs: `docs/architecture.md` and `skills/safe-agent-payments/SKILL.md` CLI/API sections.
 
 ## Tasks
 
@@ -66,7 +66,7 @@
 
 ### Task 6: Docs and Verification
 
-- [ ] Update `architecture.md` with the CLI-first demo runner route and dashboard transcript state.
+- [ ] Update `docs/architecture.md` with the CLI-first demo runner route and dashboard transcript state.
 - [ ] Update `skills/safe-agent-payments/SKILL.md` with `safe demo` usage and live-default warning.
 - [ ] Run focused tests.
 - [ ] Run `pnpm typecheck`.

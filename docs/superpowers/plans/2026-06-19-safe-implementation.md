@@ -12,7 +12,7 @@
 
 ## Source References
 
-- Product spec: `SAFE - Spend Authorization Firewall for Agents.md`
+- Product spec: `docs/spec/safe-spec.md`
 - x402 exact docs: `https://docs.x402.org/schemes/exact`
 - x402 SVM spec: `https://github.com/x402-foundation/x402/blob/main/specs/schemes/exact/scheme_exact_svm.md`
 - Solana fixed delegation: `https://solana.com/docs/payments/subscriptions/fixed-delegation`
@@ -2663,7 +2663,7 @@ Expected:
 
 - [ ] **Step 4: Documentation update**
 
-Modify `SAFE - Spend Authorization Firewall for Agents.md` only if implementation differs from the plan. Add a short implementation note near section 15.6 with:
+Modify `docs/spec/safe-spec.md` only if implementation differs from the plan. Add a short implementation note near section 15.6 with:
 
 ```markdown
 Implementation note: The hackathon app uses demo-mode facilitator verification by default and switches to live Solana devnet settlement when `SAFE_DEMO_MODE=false` and devnet keys are configured.

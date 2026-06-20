@@ -1007,5 +1007,5 @@ Autonomous agents need more than wallets. They need payment judgment. SAFE is th
 - Solana x402 guide and ecosystem stats: https://solana.com/solutions/x402
 - Solana fixed delegation docs: https://solana.com/docs/payments/subscriptions/fixed-delegation
 - x402 attack research: https://arxiv.org/abs/2603.18148
-- SAFE architecture: `architecture.md`
-- SAFE external-agent skill: `skills/safe-agent-payments/SKILL.md`
+- SAFE architecture: `../architecture.md`
+- SAFE external-agent skill: `../../skills/safe-agent-payments/SKILL.md`
