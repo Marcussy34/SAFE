@@ -74,9 +74,9 @@ flowchart TB
     Runtime[runtimePreflight]
     LiveSettlement[liveSettlement]
     AllowanceAdapter[allowance adapter]
-    Subscriptions[@solana/subscriptions]
-    Token[@solana-program/token]
-    Kit[@solana/kit]
+    Subscriptions["@solana/subscriptions"]
+    Token["@solana-program/token"]
+    Kit["@solana/kit"]
   end
 
   subgraph Payments[x402 / facilitator layer]
