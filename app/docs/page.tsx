@@ -131,10 +131,12 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className="scroll-mt-28 border-t border-white/10 py-10 first:border-t-0 first:pt-0">
-      {eyebrow ? <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">{eyebrow}</p> : null}
-      <h2 className="mt-2 text-2xl font-semibold tracking-normal text-white">{title}</h2>
-      <div className="mt-5 space-y-5 text-sm leading-6 text-zinc-300">{children}</div>
+    <section id={id} className="scroll-mt-28 border-t border-border py-10 first:border-t-0 first:pt-0">
+      {eyebrow ? (
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-primary">{eyebrow}</p>
+      ) : null}
+      <h2 className="mt-2 font-display text-2xl font-semibold tracking-normal text-foreground">{title}</h2>
+      <div className="mt-5 space-y-5 text-sm leading-6 text-muted-foreground">{children}</div>
     </section>
   );
 }
@@ -151,23 +153,23 @@ function StatBlock({
   tone: "emerald" | "sky" | "amber";
 }) {
   const tones = {
-    emerald: "border-emerald-400/20 bg-emerald-400/8 text-emerald-200",
-    sky: "border-sky-400/20 bg-sky-400/8 text-sky-200",
-    amber: "border-amber-400/20 bg-amber-400/8 text-amber-200"
+    emerald: "border-primary/30 bg-primary/10 text-primary",
+    sky: "border-sky-400/30 bg-sky-400/10 text-sky-200",
+    amber: "border-amber-400/30 bg-amber-400/10 text-amber-200"
   };
 
   return (
-    <div className={cn("rounded-lg border p-4", tones[tone])}>
-      <Icon className="size-4" />
-      <p className="mt-5 text-xs uppercase tracking-[0.16em] opacity-70">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-white">{value}</p>
+    <div className={cn("rounded-md border p-4", tones[tone])}>
+      <Icon className="size-4" aria-hidden="true" />
+      <p className="mt-5 font-mono text-[11px] uppercase tracking-[0.16em] opacity-70">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-foreground">{value}</p>
     </div>
   );
 }
 
 function CodeBlock({ children }: { children: string }) {
   return (
-    <pre className="overflow-x-auto rounded-lg border border-white/10 bg-black/60 p-4 text-[13px] leading-6 text-emerald-100 shadow-inner shadow-black/30">
+    <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-[13px] leading-6 text-primary shadow-inner shadow-black/30">
       <code>{children}</code>
     </pre>
   );
@@ -175,65 +177,68 @@ function CodeBlock({ children }: { children: string }) {
 
 function FlowNode({ label, detail, tone = "default" }: { label: string; detail: string; tone?: "default" | "safe" | "chain" }) {
   const tones = {
-    default: "border-zinc-700 bg-zinc-950 text-zinc-200",
-    safe: "border-emerald-400/30 bg-emerald-400/10 text-emerald-100",
-    chain: "border-sky-400/30 bg-sky-400/10 text-sky-100"
+    default: "border-border bg-card text-foreground",
+    safe: "border-primary/30 bg-primary/10 text-primary",
+    chain: "border-sky-400/30 bg-sky-400/10 text-sky-200"
   };
 
   return (
-    <div className={cn("min-w-0 rounded-lg border p-4", tones[tone])}>
+    <div className={cn("min-w-0 rounded-md border p-4", tones[tone])}>
       <p className="text-sm font-semibold">{label}</p>
-      <p className="mt-2 text-xs leading-5 text-zinc-400">{detail}</p>
+      <p className="mt-2 text-xs leading-5 text-muted-foreground">{detail}</p>
     </div>
   );
 }
 
 function Arrow() {
   return (
-    <div className="hidden items-center justify-center text-zinc-600 lg:flex">
-      <ArrowRight className="size-4" />
+    <div className="hidden items-center justify-center text-muted-foreground lg:flex">
+      <ArrowRight className="size-4" aria-hidden="true" />
     </div>
   );
 }
 
 export default function DocsPage() {
   return (
-    <main className="min-h-screen bg-[#070909] text-zinc-100">
-      <div className="border-b border-white/10 bg-[#070909]/95 backdrop-blur">
+    <main className="min-h-screen bg-background text-foreground">
+      <div className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
-          <Link href="/" className="flex min-w-0 items-center gap-2 text-sm font-semibold text-white">
-            <span className="grid size-7 place-items-center rounded-md border border-emerald-400/30 bg-emerald-400/10">
-              <ShieldCheck className="size-4 text-emerald-300" />
+          <Link
+            href="/"
+            className="flex min-w-0 items-center gap-2 rounded-md font-mono text-sm font-medium tracking-tight text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <span className="grid size-7 place-items-center rounded-md border border-primary/30 bg-primary/10">
+              <ShieldCheck className="size-4 text-primary" aria-hidden="true" />
             </span>
-            SAFE Docs
+            SAFE<span className="text-muted-foreground">{"//docs"}</span>
           </Link>
-          <div className="ml-auto hidden h-8 min-w-[260px] items-center gap-2 rounded-md border border-white/10 bg-white/[0.03] px-3 text-xs text-zinc-500 md:flex">
-            <Search className="size-3.5" />
+          <div className="ml-auto hidden h-8 min-w-[260px] items-center gap-2 rounded-md border border-border bg-card px-3 text-xs text-muted-foreground md:flex">
+            <Search className="size-3.5" aria-hidden="true" />
             Search documentation
-            <span className="ml-auto rounded border border-white/10 px-1.5 py-0.5 text-[10px] text-zinc-500">⌘K</span>
+            <span className="ml-auto rounded border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">⌘K</span>
           </div>
           <Link
             href="/"
-            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-white/10 px-2.5 text-xs font-medium text-zinc-300 transition hover:border-emerald-400/40 hover:text-white"
+            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border px-2.5 text-xs font-medium text-muted-foreground transition hover:border-primary/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             App
-            <ExternalLink className="size-3.5" />
+            <ExternalLink className="size-3.5" aria-hidden="true" />
           </Link>
         </div>
       </div>
 
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[230px_minmax(0,1fr)_220px] lg:px-8">
         <aside className="hidden lg:block">
-          <nav className="sticky top-8 space-y-7 text-sm">
+          <nav className="sticky top-20 space-y-7 text-sm">
             {navGroups.map((group) => (
               <div key={group.title}>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">{group.title}</p>
+                <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{group.title}</p>
                 <div className="space-y-1">
                   {group.links.map(([label, href]) => (
                     <a
                       key={href}
                       href={href}
-                      className="block rounded-md px-2 py-1.5 text-zinc-400 transition hover:bg-white/[0.04] hover:text-white"
+                      className="block rounded-md px-2 py-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
                       {label}
                     </a>
@@ -246,14 +251,14 @@ export default function DocsPage() {
 
         <article className="min-w-0">
           <section id="introduction" className="scroll-mt-28 pb-10">
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-200">
-              <BookOpen className="size-3.5" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+              <BookOpen className="size-3.5" aria-hidden="true" />
               Official SAFE documentation
             </div>
-            <h1 className="mt-5 max-w-3xl text-4xl font-semibold tracking-normal text-white sm:text-5xl">
+            <h1 className="mt-5 max-w-3xl font-display text-4xl font-semibold tracking-normal text-foreground sm:text-5xl">
               Spend Authorization Firewall for Agents
             </h1>
-            <p className="mt-5 max-w-3xl text-base leading-7 text-zinc-300">
+            <p className="mt-5 max-w-3xl text-base leading-7 text-muted-foreground">
               SAFE lets an agent spend from a capped Solana allowance, but only after a deterministic firewall approves the
               x402-style payment request. Approved payments settle on Solana devnet. Blocked payments are never signed.
             </p>
@@ -277,10 +282,10 @@ export default function DocsPage() {
                 ["Public x402 probed", "Direct wallet x402 verifies publicly; allowance wrapper needs allowlisting."],
                 ["Not mainnet", "This is a devnet developer preview, not production payment infrastructure."]
               ].map(([title, body]) => (
-                <div key={title} className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
-                  <CheckCircle2 className="size-4 text-emerald-300" />
-                  <h3 className="mt-3 text-sm font-semibold text-white">{title}</h3>
-                  <p className="mt-1 text-sm text-zinc-400">{body}</p>
+                <div key={title} className="rounded-md border border-border bg-card p-4">
+                  <CheckCircle2 className="size-4 text-primary" aria-hidden="true" />
+                  <h3 className="mt-3 font-display text-sm font-semibold text-foreground">{title}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{body}</p>
                 </div>
               ))}
             </div>
@@ -292,8 +297,8 @@ export default function DocsPage() {
               create the fixed delegation, then run the agent.
             </p>
             <CodeBlock>{quickstartCommands}</CodeBlock>
-            <div className="flex gap-3 rounded-lg border border-amber-400/20 bg-amber-400/10 p-4 text-amber-100">
-              <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+            <div className="flex gap-3 rounded-md border border-amber-400/30 bg-amber-400/10 p-4 text-amber-200">
+              <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
               <p className="text-sm leading-6">
                 Live mode spends devnet USDC from the connected wallet allowance. Keep server delegatee and facilitator keys
                 in `.env.local` only.
@@ -309,20 +314,20 @@ export default function DocsPage() {
               <Arrow />
               <FlowNode label="Solana settles approved spend" detail="The delegatee signs transferFixed and the facilitator submits." tone="chain" />
             </div>
-            <div className="rounded-lg border border-white/10 bg-zinc-950 p-4">
-              <p className="text-sm font-semibold text-white">Core model</p>
-              <div className="mt-3 grid gap-2 text-sm text-zinc-300 md:grid-cols-2">
+            <div className="rounded-md border border-border bg-card p-4">
+              <p className="font-display text-sm font-semibold text-foreground">Core model</p>
+              <div className="mt-3 grid gap-2 text-sm text-muted-foreground md:grid-cols-2">
                 <p>
-                  <span className="text-emerald-300">Solana allowance:</span> hard monetary boundary.
+                  <span className="text-primary">Solana allowance:</span> hard monetary boundary.
                 </p>
                 <p>
-                  <span className="text-emerald-300">x402:</span> per-request paid API negotiation.
+                  <span className="text-primary">x402:</span> per-request paid API negotiation.
                 </p>
                 <p>
-                  <span className="text-emerald-300">SAFE:</span> semantic firewall before signing.
+                  <span className="text-primary">SAFE:</span> semantic firewall before signing.
                 </p>
                 <p>
-                  <span className="text-emerald-300">Facilitator:</span> verification, sponsorship, submission.
+                  <span className="text-primary">Facilitator:</span> verification, sponsorship, submission.
                 </p>
               </div>
             </div>
@@ -339,10 +344,10 @@ export default function DocsPage() {
                 const TypedIcon = Icon as ComponentType<{ className?: string }>;
 
                 return (
-                  <div key={title as string} className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
-                    <TypedIcon className="size-4 text-emerald-300" />
-                    <h3 className="mt-3 text-sm font-semibold text-white">{title as string}</h3>
-                    <p className="mt-1 text-sm text-zinc-400">{body as string}</p>
+                  <div key={title as string} className="rounded-md border border-border bg-card p-4">
+                    <TypedIcon className="size-4 text-primary" aria-hidden="true" />
+                    <h3 className="mt-3 font-display text-sm font-semibold text-foreground">{title as string}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{body as string}</p>
                   </div>
                 );
               })}
@@ -350,18 +355,18 @@ export default function DocsPage() {
           </Section>
 
           <Section id="runtime-modes" eyebrow="Modes" title="Runtime Modes">
-            <div className="overflow-x-auto rounded-lg border border-white/10">
+            <div className="overflow-x-auto rounded-md border border-border">
               <table className="w-full min-w-[640px] text-left text-sm">
-                <thead className="bg-white/[0.04] text-xs uppercase tracking-[0.16em] text-zinc-500">
+                <thead className="bg-muted font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
                   <tr>
                     <th className="px-4 py-3">Mode</th>
                     <th className="px-4 py-3">Behavior</th>
                     <th className="px-4 py-3">Use</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/10 text-zinc-300">
+                <tbody className="divide-y divide-border text-muted-foreground">
                   <tr>
-                    <td className="px-4 py-3 font-mono text-emerald-200">SAFE_DEMO_MODE=true</td>
+                    <td className="px-4 py-3 font-mono text-primary">SAFE_DEMO_MODE=true</td>
                     <td className="px-4 py-3">Uses mock verification and demo signatures.</td>
                     <td className="px-4 py-3">UI demos and local review.</td>
                   </tr>
@@ -393,15 +398,15 @@ Rail:    x402_solana_allowance_devnet`}</CodeBlock>
               a local x402 SVM facilitator with simulation-based verification and the Subscriptions program allowlisted.
             </p>
             <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-lg border border-emerald-400/20 bg-emerald-400/10 p-4">
-                <Zap className="size-4 text-emerald-200" />
-                <h3 className="mt-3 text-sm font-semibold text-white">Public x402 direct payment</h3>
-                <p className="mt-1 text-sm text-zinc-300">Verified successfully against the public facilitator on devnet.</p>
+              <div className="rounded-md border border-primary/30 bg-primary/10 p-4">
+                <Zap className="size-4 text-primary" aria-hidden="true" />
+                <h3 className="mt-3 font-display text-sm font-semibold text-foreground">Public x402 direct payment</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Verified successfully against the public facilitator on devnet.</p>
               </div>
-              <div className="rounded-lg border border-amber-400/20 bg-amber-400/10 p-4">
-                <AlertTriangle className="size-4 text-amber-200" />
-                <h3 className="mt-3 text-sm font-semibold text-white">SAFE allowance wrapper</h3>
-                <p className="mt-1 text-sm text-zinc-300">Verified locally; public facilitators need the same allowlist.</p>
+              <div className="rounded-md border border-amber-400/30 bg-amber-400/10 p-4">
+                <AlertTriangle className="size-4 text-amber-200" aria-hidden="true" />
+                <h3 className="mt-3 font-display text-sm font-semibold text-foreground">SAFE allowance wrapper</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Verified locally; public facilitators need the same allowlist.</p>
               </div>
             </div>
           </Section>
@@ -414,20 +419,20 @@ Rail:    x402_solana_allowance_devnet`}</CodeBlock>
           </Section>
 
           <Section id="api-routes" eyebrow="Reference" title="API Routes">
-            <div className="overflow-x-auto rounded-lg border border-white/10">
+            <div className="overflow-x-auto rounded-md border border-border">
               <table className="w-full min-w-[720px] text-left text-sm">
-                <thead className="bg-white/[0.04] text-xs uppercase tracking-[0.16em] text-zinc-500">
+                <thead className="bg-muted font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
                   <tr>
                     <th className="px-4 py-3">Method</th>
                     <th className="px-4 py-3">Route</th>
                     <th className="px-4 py-3">Purpose</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/10 text-zinc-300">
+                <tbody className="divide-y divide-border text-muted-foreground">
                   {apiRows.map(([method, route, purpose]) => (
                     <tr key={`${method}:${route}`}>
-                      <td className="px-4 py-3 font-mono text-xs text-emerald-200">{method}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-zinc-100">{route}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-primary">{method}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-foreground">{route}</td>
                       <td className="px-4 py-3">{purpose}</td>
                     </tr>
                   ))}
@@ -437,15 +442,15 @@ Rail:    x402_solana_allowance_devnet`}</CodeBlock>
           </Section>
 
           <Section id="environment" eyebrow="Reference" title="Environment">
-            <div className="overflow-x-auto rounded-lg border border-white/10">
+            <div className="overflow-x-auto rounded-md border border-border">
               <table className="w-full min-w-[680px] text-left text-sm">
-                <thead className="bg-white/[0.04] text-xs uppercase tracking-[0.16em] text-zinc-500">
+                <thead className="bg-muted font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
                   <tr>
                     <th className="px-4 py-3">Variable</th>
                     <th className="px-4 py-3">Meaning</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/10 text-zinc-300">
+                <tbody className="divide-y divide-border text-muted-foreground">
                   {envRows.map(([name, meaning]) => (
                     <tr key={name}>
                       <td className="px-4 py-3 font-mono text-xs text-sky-200">{name}</td>
@@ -459,16 +464,16 @@ Rail:    x402_solana_allowance_devnet`}</CodeBlock>
 
           <Section id="demo-claims" eyebrow="Positioning" title="Demo Claims">
             <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-lg border border-emerald-400/20 bg-emerald-400/10 p-4">
-                <h3 className="text-sm font-semibold text-white">Say this</h3>
-                <p className="mt-2 text-sm text-zinc-300">
+              <div className="rounded-md border border-primary/30 bg-primary/10 p-4">
+                <h3 className="font-display text-sm font-semibold text-foreground">Say this</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
                   SAFE is a working Solana devnet agent-payment firewall using wallet-created allowances, real USDC settlement,
                   local x402 exact SVM facilitator settlement, and AP2-style intent enforcement.
                 </p>
               </div>
-              <div className="rounded-lg border border-red-400/20 bg-red-400/10 p-4">
-                <h3 className="text-sm font-semibold text-white">Do not claim this yet</h3>
-                <p className="mt-2 text-sm text-zinc-300">
+              <div className="rounded-md border border-red-400/30 bg-red-400/10 p-4">
+                <h3 className="font-display text-sm font-semibold text-foreground">Do not claim this yet</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
                   Not full production x402 compatibility with every facilitator. Not full AP2 credential exchange. Not mainnet-ready.
                 </p>
               </div>
@@ -477,18 +482,22 @@ Rail:    x402_solana_allowance_devnet`}</CodeBlock>
         </article>
 
         <aside className="hidden xl:block">
-          <div className="sticky top-8 rounded-lg border border-white/10 bg-white/[0.03] p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">On this page</p>
+          <div className="sticky top-20 rounded-md border border-border bg-card p-4">
+            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">On this page</p>
             <div className="mt-3 space-y-1 text-sm">
               {onThisPage.map(([label, href]) => (
-                <a key={href} href={href} className="block rounded-md py-1.5 text-zinc-400 transition hover:text-white">
+                <a
+                  key={href}
+                  href={href}
+                  className="block rounded-md py-1.5 text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
                   {label}
                 </a>
               ))}
             </div>
-            <div className="mt-5 rounded-md border border-emerald-400/20 bg-emerald-400/10 p-3">
-              <Terminal className="size-4 text-emerald-300" />
-              <p className="mt-2 text-xs leading-5 text-emerald-100">
+            <div className="mt-5 rounded-md border border-primary/30 bg-primary/10 p-3">
+              <Terminal className="size-4 text-primary" aria-hidden="true" />
+              <p className="mt-2 text-xs leading-5 text-primary">
                 Devnet mode is live. Use the smoke command only when the allowance and token balance are ready.
               </p>
             </div>

@@ -15,6 +15,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SectionLabel } from "@/components/dashboard/SectionLabel";
+import { StatusLed } from "@/components/dashboard/StatusLed";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -36,14 +38,16 @@ function shortAddress(value?: string) {
 }
 
 function statusBadge(ok: boolean, label: string) {
+  // primary (Solana green) = ready/active accent; amber = needs attention/warning.
   return (
     <Badge
       variant="outline"
       className={cn(
-        "shrink-0",
-        ok ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300" : "border-amber-400/30 bg-amber-400/10 text-amber-300"
+        "shrink-0 gap-1.5 font-mono text-[11px] uppercase tracking-wide",
+        ok ? "border-primary/30 bg-primary/10 text-primary" : "border-amber-400/30 bg-amber-400/10 text-amber-300"
       )}
     >
+      <StatusLed tone={ok ? "green" : "amber"} pulse={ok} />
       {label}
     </Badge>
   );
@@ -143,7 +147,7 @@ export function LiveDemoStatePanel() {
     <Card className="rounded-md border border-border bg-card shadow-none ring-0">
       <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
-          <CardTitle className="flex items-center gap-2 text-base">
+          <CardTitle className="flex items-center gap-2 font-display text-base">
             <Database className="size-4 text-sky-400" aria-hidden="true" />
             Live Devnet State
           </CardTitle>
@@ -152,7 +156,8 @@ export function LiveDemoStatePanel() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="border-border bg-muted text-muted-foreground">
+          <Badge variant="outline" className="gap-1.5 border-border bg-muted font-mono text-[11px] text-muted-foreground">
+            {state ? <StatusLed tone="green" pulse /> : <StatusLed tone="neutral" />}
             {state ? `Updated ${formatTimestamp(state.generatedAt)}` : "Loading"}
           </Badge>
           <Button type="button" variant="outline" size="sm" onClick={refresh} disabled={loading}>
@@ -175,7 +180,7 @@ export function LiveDemoStatePanel() {
         ) : null}
 
         {state?.liveError ? (
-          <Alert className="rounded-md border-amber-400/30 bg-amber-400/10 text-amber-200">
+          <Alert className="rounded-md border-amber-400/30 bg-amber-400/10 text-amber-300">
             <CircleAlert className="size-4 text-amber-300" aria-hidden="true" />
             <AlertTitle>Live state warning</AlertTitle>
             <AlertDescription>{state.liveError}</AlertDescription>
@@ -185,38 +190,38 @@ export function LiveDemoStatePanel() {
         <div className="grid gap-3 lg:grid-cols-4">
           <div className="rounded-md border border-border bg-muted p-3">
             <div className="flex items-center justify-between gap-2">
-              <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Runtime</div>
+              <div className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Runtime</div>
               {statusBadge(state?.readiness.mode === "live-devnet", state?.readiness.mode ?? "loading")}
             </div>
-            <div className="mt-2 text-sm text-muted-foreground">{state?.readiness.network ?? "Loading network"}</div>
+            <div className="mt-2 font-mono text-sm text-muted-foreground">{state?.readiness.network ?? "Loading network"}</div>
           </div>
 
           <div className="rounded-md border border-border bg-muted p-3">
             <div className="flex items-center justify-between gap-2">
-              <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">RPC</div>
+              <div className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">RPC</div>
               {statusBadge(Boolean(state?.readiness.checks.find((check) => check.id === "rpc")?.ok), "checked")}
             </div>
-            <div className="mt-2 min-w-0 break-all text-sm text-muted-foreground">
+            <div className="mt-2 min-w-0 break-all font-mono text-sm text-muted-foreground">
               {state?.readiness.rpcUrl ?? "Loading RPC"}
             </div>
           </div>
 
           <div className="rounded-md border border-border bg-muted p-3">
             <div className="flex items-center justify-between gap-2">
-              <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Mint</div>
+              <div className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Mint</div>
               <WalletCards className="size-4 text-sky-400" aria-hidden="true" />
             </div>
-            <div className="mt-2 min-w-0 break-all text-sm text-muted-foreground">
+            <div className="mt-2 min-w-0 break-all font-mono text-sm text-muted-foreground">
               {shortAddress(state?.readiness.mint)}
             </div>
           </div>
 
           <div className="rounded-md border border-border bg-muted p-3">
             <div className="flex items-center justify-between gap-2">
-              <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Allowance</div>
+              <div className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Allowance</div>
               {statusBadge(Boolean(state?.allowanceStatus?.fixedDelegationExists), state?.allowanceStatus?.fixedDelegationExists ? "ready" : "needed")}
             </div>
-            <div className="mt-2 text-sm text-muted-foreground">
+            <div className="mt-2 font-mono text-sm text-muted-foreground">
               {formatAtomicUsdc(state?.allowanceStatus?.fixedDelegationAmountAtomicUnits)}
             </div>
           </div>
@@ -224,29 +229,29 @@ export function LiveDemoStatePanel() {
 
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="rounded-md border border-border">
-            <div className="border-b border-border px-3 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Env Wallet Balances
+            <div className="border-b border-border px-3 py-2">
+              <SectionLabel>Env Wallet Balances</SectionLabel>
             </div>
             {state?.balances.length ? (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Address</TableHead>
-                    <TableHead>SOL</TableHead>
-                    <TableHead>USDC</TableHead>
+                    <TableHead className="font-mono text-[11px] uppercase tracking-wide">Role</TableHead>
+                    <TableHead className="font-mono text-[11px] uppercase tracking-wide">Address</TableHead>
+                    <TableHead className="font-mono text-[11px] uppercase tracking-wide">SOL</TableHead>
+                    <TableHead className="font-mono text-[11px] uppercase tracking-wide">USDC</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {state.balances.map((balance) => (
                     <TableRow key={balance.label}>
                       <TableCell className="whitespace-normal font-medium text-foreground">{balance.label}</TableCell>
-                      <TableCell className="max-w-56 whitespace-normal break-all text-muted-foreground">
+                      <TableCell className="max-w-56 whitespace-normal break-all font-mono text-muted-foreground">
                         {balance.address}
-                        <div className="mt-1 text-xs text-muted-foreground">ATA {shortAddress(balance.usdcAta)}</div>
+                        <div className="mt-1 font-mono text-xs text-muted-foreground">ATA {shortAddress(balance.usdcAta)}</div>
                       </TableCell>
-                      <TableCell className="whitespace-normal text-muted-foreground">{balance.sol}</TableCell>
-                      <TableCell className="whitespace-normal text-muted-foreground">{balance.usdc}</TableCell>
+                      <TableCell className="whitespace-normal font-mono text-muted-foreground">{balance.sol}</TableCell>
+                      <TableCell className="whitespace-normal font-mono text-muted-foreground">{balance.usdc}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -259,15 +264,15 @@ export function LiveDemoStatePanel() {
           </div>
 
           <div className="space-y-3 rounded-md border border-border p-3">
-            <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              <ShieldCheck className="size-3.5 text-emerald-400" aria-hidden="true" />
+            <SectionLabel>
+              <ShieldCheck className="size-3.5 text-primary" aria-hidden="true" />
               Server Checks
-            </div>
+            </SectionLabel>
             <div className="grid gap-2">
               {state?.readiness.checks.map((check) => (
                 <div key={check.id} className="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
                   {check.ok ? (
-                    <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-emerald-400" aria-hidden="true" />
+                    <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden="true" />
                   ) : (
                     <CircleAlert className="mt-0.5 size-3.5 shrink-0 text-amber-400" aria-hidden="true" />
                   )}
@@ -282,25 +287,25 @@ export function LiveDemoStatePanel() {
             <div className="grid gap-2 text-sm">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-muted-foreground">Delegator</span>
-                <span className="min-w-0 flex-1 break-all text-right font-medium text-foreground">
+                <span className="min-w-0 flex-1 break-all text-right font-mono font-medium text-foreground">
                   {shortAddress(state?.allowanceStatus?.owner)}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-muted-foreground">Delegatee</span>
-                <span className="min-w-0 flex-1 break-all text-right font-medium text-foreground">
+                <span className="min-w-0 flex-1 break-all text-right font-mono font-medium text-foreground">
                   {shortAddress(state?.allowanceStatus?.delegatee)}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-muted-foreground">Fixed PDA</span>
-                <span className="min-w-0 flex-1 break-all text-right font-medium text-foreground">
+                <span className="min-w-0 flex-1 break-all text-right font-mono font-medium text-foreground">
                   {shortAddress(state?.allowanceStatus?.fixedDelegationPda)}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-muted-foreground">Expiry</span>
-                <span className="min-w-0 flex-1 text-right font-medium text-foreground">
+                <span className="min-w-0 flex-1 text-right font-mono font-medium text-foreground">
                   {formatUnixSeconds(state?.allowanceStatus?.fixedDelegationExpiryTs)}
                 </span>
               </div>

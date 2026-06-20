@@ -18,6 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { SectionLabel } from "@/components/dashboard/SectionLabel";
+import { StatusLed, type LedTone } from "@/components/dashboard/StatusLed";
 import { cn } from "@/lib/utils";
 import type { SafeDemoState } from "@/lib/runtime/demoState";
 import type { AuditRecord, NormalizedPaymentRequest, PolicyDecision } from "@/lib/types";
@@ -69,13 +71,21 @@ function formatAction(action: string) {
   return action.replaceAll("_", " ");
 }
 
-function getAttemptState(action: string) {
+function getAttemptState(action: string): {
+  label: string;
+  Icon: typeof ShieldCheck;
+  tone: LedTone;
+  badgeClass: string;
+  iconClass: string;
+} {
   if (action === "approve") {
+    // Approved = Solana green accent.
     return {
       label: "Approved",
       Icon: ShieldCheck,
-      badgeClass: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
-      iconClass: "bg-emerald-400/10 text-emerald-300 ring-emerald-400/30"
+      tone: "green",
+      badgeClass: "border-primary/30 bg-primary/10 text-primary",
+      iconClass: "bg-primary/10 text-primary ring-primary/30"
     };
   }
 
@@ -83,6 +93,7 @@ function getAttemptState(action: string) {
     return {
       label: "Redacted",
       Icon: ShieldAlert,
+      tone: "amber",
       badgeClass: "border-amber-400/30 bg-amber-400/10 text-amber-300",
       iconClass: "bg-amber-400/10 text-amber-300 ring-amber-400/30"
     };
@@ -91,6 +102,7 @@ function getAttemptState(action: string) {
   return {
     label: "Rejected",
     Icon: ShieldX,
+    tone: "red",
     badgeClass: "border-red-400/30 bg-red-400/10 text-red-300",
     iconClass: "bg-red-400/10 text-red-300 ring-red-400/30"
   };
@@ -98,7 +110,8 @@ function getAttemptState(action: string) {
 
 function settlementClass(status: string) {
   if (status === "settled" || status === "verified") {
-    return "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
+    // Settled = Solana green accent.
+    return "border-primary/30 bg-primary/10 text-primary";
   }
 
   if (status === "failed") {
@@ -106,6 +119,19 @@ function settlementClass(status: string) {
   }
 
   return "border-border bg-muted text-muted-foreground";
+}
+
+// LED tone for a settlement status indicator.
+function settlementTone(status: string): LedTone {
+  if (status === "settled" || status === "verified") {
+    return "green";
+  }
+
+  if (status === "failed") {
+    return "red";
+  }
+
+  return "neutral";
 }
 
 function isAgentRunResult(body: unknown): body is AgentRunResult {
@@ -178,7 +204,8 @@ function shortHash(value?: string) {
 
 function logLevelClass(level: RunLogLevel) {
   if (level === "success") {
-    return "text-emerald-300";
+    // Success prompt = Solana green accent.
+    return "text-primary";
   }
 
   if (level === "warn") {
@@ -195,23 +222,25 @@ function logLevelClass(level: RunLogLevel) {
 function FieldRow({ label, value }: { label: string; value?: string }) {
   return (
     <div className="min-w-0">
-      <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="mt-1 min-w-0 break-all text-xs leading-5 text-foreground">{value || "Not available"}</div>
+      <div className="font-mono text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</div>
+      {/* On-chain / technical value rendered in mono. */}
+      <div className="mt-1 min-w-0 break-all font-mono text-xs leading-5 text-foreground">{value || "Not available"}</div>
     </div>
   );
 }
 
 function TerminalLog({ entries, running }: { entries: RunLogEntry[]; running: boolean }) {
   return (
-    <div className="rounded-md border border-border bg-black/70 p-3 font-mono text-xs shadow-inner">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2">
-        <div className="flex items-center gap-2 font-sans text-xs font-medium uppercase tracking-wide text-muted-foreground">
+    <div className="rounded-md border border-border bg-muted p-3 font-mono text-xs shadow-none">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2">
+        <SectionLabel>
           <Terminal className="size-3.5 text-sky-400" aria-hidden="true" />
           Agent Execution Log
-        </div>
-        <Badge variant="outline" className="border-border bg-white/5 font-sans text-muted-foreground">
+        </SectionLabel>
+        <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-0.5 font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
+          <StatusLed tone={running ? "sky" : entries.length ? "green" : "neutral"} pulse={running} />
           {running ? "running" : entries.length ? "complete" : "idle"}
-        </Badge>
+        </span>
       </div>
 
       {entries.length === 0 ? (
@@ -374,7 +403,7 @@ export function AgentRunPanel() {
     <Card className="rounded-md border border-border bg-card shadow-none ring-0">
       <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <CardTitle className="flex items-center gap-2 text-base">
+          <CardTitle className="flex items-center gap-2 font-display text-base">
             <ReceiptText className="size-4 text-sky-400" aria-hidden="true" />
             World Cup Agent Run
           </CardTitle>
@@ -385,7 +414,11 @@ export function AgentRunPanel() {
             Live mode spends real devnet USDC from the configured allowance.
           </div>
         </div>
-        <Button onClick={runAgent} disabled={loading} className="w-full sm:w-auto">
+        <Button
+          onClick={runAgent}
+          disabled={loading}
+          className="w-full bg-primary text-primary-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:w-auto"
+        >
           {loading ? (
             <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
           ) : (
@@ -413,23 +446,33 @@ export function AgentRunPanel() {
 
         {result ? (
           <div className="space-y-3 rounded-md border border-border bg-muted p-3">
-            <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Run Overview</div>
+            <SectionLabel>Run Overview</SectionLabel>
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-md border border-border bg-card p-3">
-                <div className="text-xs text-muted-foreground">Settled</div>
-                <div className="mt-1 text-xl font-semibold text-emerald-300">{summary.settled}</div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="font-mono text-[11px] uppercase tracking-wide text-muted-foreground">Settled</div>
+                  <StatusLed tone="green" />
+                </div>
+                {/* Settled count = Solana green accent. */}
+                <div className="mt-1 font-mono text-xl font-semibold text-primary">{summary.settled}</div>
               </div>
               <div className="rounded-md border border-border bg-card p-3">
-                <div className="text-xs text-muted-foreground">Blocked</div>
-                <div className="mt-1 text-xl font-semibold text-red-300">{summary.blocked}</div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="font-mono text-[11px] uppercase tracking-wide text-muted-foreground">Blocked</div>
+                  <StatusLed tone="red" />
+                </div>
+                <div className="mt-1 font-mono text-xl font-semibold text-red-300">{summary.blocked}</div>
               </div>
               <div className="rounded-md border border-border bg-card p-3">
-                <div className="text-xs text-muted-foreground">Redacted</div>
-                <div className="mt-1 text-xl font-semibold text-amber-300">{summary.redacted}</div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="font-mono text-[11px] uppercase tracking-wide text-muted-foreground">Redacted</div>
+                  <StatusLed tone="amber" />
+                </div>
+                <div className="mt-1 font-mono text-xl font-semibold text-amber-300">{summary.redacted}</div>
               </div>
               <div className="rounded-md border border-border bg-card p-3">
-                <div className="text-xs text-muted-foreground">Devnet spend</div>
-                <div className="mt-1 text-xl font-semibold text-foreground">{formatUsdc(summary.spend)}</div>
+                <div className="font-mono text-[11px] uppercase tracking-wide text-muted-foreground">Devnet spend</div>
+                <div className="mt-1 font-mono text-xl font-semibold text-foreground">{formatUsdc(summary.spend)}</div>
               </div>
             </div>
 
@@ -437,26 +480,27 @@ export function AgentRunPanel() {
 
             <div className="grid gap-3 lg:grid-cols-3">
               <div className="rounded-md border border-border bg-card p-3">
-                <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <div className="flex items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                   <WalletCards className="size-3.5 text-sky-400" aria-hidden="true" />
                   User USDC Before
                 </div>
-                <div className="mt-2 break-all text-sm font-medium text-foreground">
+                {/* On-chain balance in mono. */}
+                <div className="mt-2 break-all font-mono text-sm font-medium text-foreground">
                   {userBalance(beforeState)?.usdc ?? "Unavailable"}
                 </div>
               </div>
               <div className="rounded-md border border-border bg-card p-3">
-                <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  <WalletCards className="size-3.5 text-emerald-400" aria-hidden="true" />
+                <div className="flex items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  <WalletCards className="size-3.5 text-primary" aria-hidden="true" />
                   User USDC After
                 </div>
-                <div className="mt-2 break-all text-sm font-medium text-foreground">
+                <div className="mt-2 break-all font-mono text-sm font-medium text-foreground">
                   {userBalance(afterState)?.usdc ?? "Unavailable"}
                 </div>
               </div>
               <div className="rounded-md border border-border bg-card p-3">
-                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Delta</div>
-                <div className="mt-2 text-sm font-medium text-foreground">{balanceDelta(beforeState, afterState)}</div>
+                <div className="font-mono text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Delta</div>
+                <div className="mt-2 font-mono text-sm font-medium text-foreground">{balanceDelta(beforeState, afterState)}</div>
               </div>
             </div>
           </div>
@@ -468,7 +512,7 @@ export function AgentRunPanel() {
           const StateIcon = state.Icon;
 
           return (
-            <div key={attempt.label} className="rounded-md border border-border p-3">
+            <div key={attempt.label} className="rounded-md border border-border bg-muted p-3">
               <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
                 <div className="flex min-w-0 gap-3">
                   <div
@@ -481,31 +525,35 @@ export function AgentRunPanel() {
                   </div>
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <div className="min-w-0 break-words font-medium text-foreground">{attempt.label}</div>
+                      <div className="min-w-0 break-words font-display font-medium text-foreground">{attempt.label}</div>
                       <Badge variant="outline" className={state.badgeClass}>
+                        <StatusLed tone={state.tone} className="mr-1.5" />
                         {state.label}
                       </Badge>
                     </div>
                     <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground">
-                      <span className="min-w-0 truncate">{attempt.request.merchantDomain}</span>
-                      <span className="font-medium text-foreground">{formatUsdc(attempt.request.amountUsdc)}</span>
+                      {/* Merchant domain + amount are on-chain values → mono. */}
+                      <span className="min-w-0 truncate font-mono">{attempt.request.merchantDomain}</span>
+                      <span className="font-mono font-medium text-foreground">{formatUsdc(attempt.request.amountUsdc)}</span>
                       <span className="capitalize">{formatAction(attempt.decision.action)}</span>
                     </div>
                     <div className="mt-1 text-xs leading-5 text-muted-foreground">{attempt.decision.reason}</div>
                     {attempt.settlement?.error ? (
-                      <div className="mt-1 text-xs leading-5 text-red-400">{attempt.settlement.error}</div>
+                      <div className="mt-1 font-mono text-xs leading-5 text-red-400">{attempt.settlement.error}</div>
                     ) : null}
                   </div>
                 </div>
 
                 <div className="flex shrink-0 flex-wrap gap-2 xl:justify-end">
+                  {/* Policy decision code → mono. */}
                   <Badge
                     variant="outline"
-                    className="h-auto max-w-full whitespace-normal break-all border-border bg-muted text-left leading-5 text-muted-foreground"
+                    className="h-auto max-w-full whitespace-normal break-all border-border bg-card text-left font-mono leading-5 text-muted-foreground"
                   >
                     {attempt.decision.reasonCode}
                   </Badge>
-                  <Badge variant="outline" className={settlementClass(status)}>
+                  <Badge variant="outline" className={cn("font-mono", settlementClass(status))}>
+                    <StatusLed tone={settlementTone(status)} className="mr-1.5" />
                     {formatAction(status)}
                   </Badge>
                   {attempt.settlement?.explorerUrl ? (
@@ -525,7 +573,7 @@ export function AgentRunPanel() {
                 </div>
               </div>
 
-              <div className="mt-3 grid gap-3 rounded-md border border-border bg-muted p-3 md:grid-cols-2 xl:grid-cols-4">
+              <div className="mt-3 grid gap-3 rounded-md border border-border bg-card p-3 md:grid-cols-2 xl:grid-cols-4">
                 <FieldRow label="x402 scheme" value={`${attempt.request.scheme} / ${attempt.request.network}`} />
                 <FieldRow label="Asset mint" value={attempt.request.assetMint} />
                 <FieldRow label="Pay to" value={attempt.request.x402.payTo} />

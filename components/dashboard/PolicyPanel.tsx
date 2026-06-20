@@ -10,6 +10,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { SectionLabel } from "@/components/dashboard/SectionLabel";
+import { StatusLed } from "@/components/dashboard/StatusLed";
 import { DEMO_TOKEN_DECIMALS } from "@/lib/constants";
 import { DEMO_POLICY } from "@/lib/fixtures/demoPolicy";
 
@@ -37,33 +39,37 @@ export function PolicyPanel() {
     <Card className="rounded-md border border-border bg-card shadow-none ring-0">
       <CardHeader className="gap-2">
         <div className="flex items-center justify-between gap-3">
-          <CardTitle className="flex min-w-0 items-center gap-2 text-base">
-            <ShieldCheck className="size-4 shrink-0 text-emerald-400" aria-hidden="true" />
+          <CardTitle className="flex min-w-0 items-center gap-2 font-display text-base">
+            <ShieldCheck className="size-4 shrink-0 text-primary" aria-hidden="true" />
             <span className="truncate">Active Policy</span>
           </CardTitle>
-          <Badge variant="outline" className="shrink-0 border-emerald-400/30 bg-emerald-400/10 text-emerald-300">
+          <Badge
+            variant="outline"
+            className="inline-flex shrink-0 items-center gap-1.5 border-primary/30 bg-primary/10 text-primary"
+          >
+            <StatusLed tone="green" pulse />
             Enforced
           </Badge>
         </div>
-        <div className="break-all text-xs text-muted-foreground">{DEMO_POLICY.policyId}</div>
+        <div className="break-all font-mono text-xs text-muted-foreground">{DEMO_POLICY.policyId}</div>
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-md border border-border bg-muted p-3">
-            <div className="text-xs text-muted-foreground">Total cap</div>
-            <div className="mt-1 font-medium text-foreground">{formatUsdc(DEMO_POLICY.totalCapUsdc)}</div>
+            <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Total cap</div>
+            <div className="mt-1 font-mono font-medium text-foreground">{formatUsdc(DEMO_POLICY.totalCapUsdc)}</div>
           </div>
           <div className="rounded-md border border-border bg-muted p-3">
-            <div className="text-xs text-muted-foreground">Per payment</div>
-            <div className="mt-1 font-medium text-foreground">{formatUsdc(DEMO_POLICY.perPaymentCapUsdc)}</div>
+            <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Per payment</div>
+            <div className="mt-1 font-mono font-medium text-foreground">{formatUsdc(DEMO_POLICY.perPaymentCapUsdc)}</div>
           </div>
           <div className="rounded-md border border-border bg-muted p-3">
-            <div className="text-xs text-muted-foreground">Per merchant</div>
-            <div className="mt-1 font-medium text-foreground">{formatUsdc(DEMO_POLICY.perMerchantCapUsdc)}</div>
+            <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Per merchant</div>
+            <div className="mt-1 font-mono font-medium text-foreground">{formatUsdc(DEMO_POLICY.perMerchantCapUsdc)}</div>
           </div>
           <div className="rounded-md border border-border bg-muted p-3">
-            <div className="text-xs text-muted-foreground">Human review</div>
-            <div className="mt-1 font-medium text-foreground">
+            <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Human review</div>
+            <div className="mt-1 font-mono font-medium text-foreground">
               Above {formatUsdc(DEMO_POLICY.requireHumanApprovalAboveUsdc)}
             </div>
           </div>
@@ -72,10 +78,10 @@ export function PolicyPanel() {
         <Separator />
 
         <div className="space-y-3">
-          <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <SectionLabel>
             <Gauge className="size-3.5 text-sky-400" aria-hidden="true" />
             Allowance
-          </div>
+          </SectionLabel>
           <div className="grid gap-2 text-sm">
             <div className="flex items-center justify-between gap-3">
               <span className="text-muted-foreground">Type</span>
@@ -85,13 +91,13 @@ export function PolicyPanel() {
             </div>
             <div className="flex items-center justify-between gap-3">
               <span className="text-muted-foreground">Remaining</span>
-              <span className="min-w-0 flex-1 text-right font-medium text-foreground">
+              <span className="min-w-0 flex-1 text-right font-mono font-medium text-foreground">
                 {formatAtomicUsdc(DEMO_POLICY.allowance.remainingAtomicUnits)}
               </span>
             </div>
             <div className="flex items-start justify-between gap-3">
               <span className="shrink-0 text-muted-foreground">Network</span>
-              <span className="min-w-0 flex-1 break-all text-right font-medium text-foreground">
+              <span className="min-w-0 flex-1 break-all text-right font-mono font-medium text-foreground">
                 {DEMO_POLICY.network}
               </span>
             </div>
@@ -101,16 +107,16 @@ export function PolicyPanel() {
         <Separator />
 
         <div>
-          <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            <CheckCircle className="size-3.5 text-emerald-400" aria-hidden="true" />
+          <SectionLabel className="mb-2">
+            <CheckCircle className="size-3.5 text-primary" aria-hidden="true" />
             Allowed categories
-          </div>
+          </SectionLabel>
           <div className="flex flex-wrap gap-2">
             {DEMO_POLICY.allowedCategories.map((category) => (
               <Badge
                 key={category}
                 variant="outline"
-                className="border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                className="border-primary/30 bg-primary/10 text-primary"
               >
                 {formatCategory(category)}
               </Badge>
@@ -119,10 +125,10 @@ export function PolicyPanel() {
         </div>
 
         <div>
-          <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <SectionLabel className="mb-2">
             <Ban className="size-3.5 text-red-400" aria-hidden="true" />
             Blocked categories
-          </div>
+          </SectionLabel>
           <div className="flex flex-wrap gap-2">
             {DEMO_POLICY.blockedCategories.map((category) => (
               <Badge key={category} variant="outline" className="border-red-400/30 bg-red-400/10 text-red-300">
@@ -133,10 +139,14 @@ export function PolicyPanel() {
         </div>
 
         <div>
-          <div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Allowed domains</div>
+          <SectionLabel className="mb-2">Allowed domains</SectionLabel>
           <div className="flex flex-wrap gap-2">
             {DEMO_POLICY.allowedDomains.map((domain) => (
-              <Badge key={domain} variant="outline" className="border-sky-400/30 bg-sky-400/10 text-sky-300">
+              <Badge
+                key={domain}
+                variant="outline"
+                className="border-sky-400/30 bg-sky-400/10 font-mono text-sky-300"
+              >
                 {domain}
               </Badge>
             ))}
@@ -151,7 +161,7 @@ export function PolicyPanel() {
             <div className="min-w-0">
               <div className="font-medium text-foreground">Replay guard</div>
               <div className="text-xs leading-5 text-muted-foreground">
-                {replay.idempotencyWindowSeconds}s window. Payment hash{" "}
+                <span className="font-mono text-foreground">{replay.idempotencyWindowSeconds}s</span> window. Payment hash{" "}
                 {formatBoolean(replay.blockDuplicatePaymentHash).toLowerCase()}, resource fingerprint{" "}
                 {formatBoolean(replay.blockDuplicateResourceRequest).toLowerCase()}.
               </div>

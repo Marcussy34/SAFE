@@ -18,6 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { SectionLabel } from "@/components/dashboard/SectionLabel";
+import { StatusLed } from "@/components/dashboard/StatusLed";
 import { cn } from "@/lib/utils";
 
 type SetupAction = "initSubscriptionAuthority" | "createFixedDelegation";
@@ -78,8 +80,11 @@ function statusBadge(ok: boolean, label: string) {
     <Badge
       variant="outline"
       className={cn(
-        "shrink-0",
-        ok ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300" : "border-amber-400/30 bg-amber-400/10 text-amber-300"
+        // Pill badge: primary green = ready, amber = pending/needed.
+        "shrink-0 rounded-full font-mono text-[10px] uppercase tracking-wide",
+        ok
+          ? "border-primary/30 bg-primary/10 text-primary"
+          : "border-amber-400/30 bg-amber-400/10 text-amber-300"
       )}
     >
       {label}
@@ -210,13 +215,26 @@ export function WalletAllowancePanel() {
   const canInitAuthority = Boolean(ownerAddress) && !authorityReady && actionLoading === null;
   const canCreateDelegation = Boolean(ownerAddress) && authorityReady && !allowanceReady && actionLoading === null;
 
+  // Overall wallet/allowance LED: green when allowance ready, amber when
+  // connected but setup incomplete, neutral when no wallet, red on error.
+  const headerTone = error
+    ? "red"
+    : allowanceReady
+      ? "green"
+      : ownerAddress
+        ? "amber"
+        : "neutral";
+
   return (
     <Card className="rounded-md border border-border bg-card shadow-none ring-0">
       <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <WalletCards className="size-4 text-sky-400" aria-hidden="true" />
+          <CardTitle className="flex items-center gap-2 font-display text-base">
+            <span className="grid size-7 place-items-center rounded-md border border-sky-400/30 bg-sky-400/10">
+              <WalletCards className="size-4 text-sky-300" aria-hidden="true" />
+            </span>
             Devnet Developer Preview
+            <StatusLed tone={headerTone} pulse={allowanceReady} className="ml-1" />
           </CardTitle>
           <div className="mt-1 text-sm text-muted-foreground">
             Connect a wallet, create the allowance, then run the agent through SAFE.
@@ -238,23 +256,24 @@ export function WalletAllowancePanel() {
         {error ? (
           <Alert variant="destructive" className="rounded-md">
             <CircleAlert className="size-4" aria-hidden="true" />
-            <AlertTitle>Setup issue</AlertTitle>
+            <AlertTitle className="font-display">Setup issue</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : null}
 
         {lastSignature ? (
-          <Alert className="rounded-md border-emerald-400/30 bg-emerald-400/10 text-emerald-200">
-            <CheckCircle2 className="size-4 text-emerald-300" aria-hidden="true" />
-            <AlertTitle>Transaction confirmed</AlertTitle>
-            <AlertDescription className="break-all">{lastSignature}</AlertDescription>
+          <Alert className="rounded-md border-primary/30 bg-primary/10 text-foreground">
+            <CheckCircle2 className="size-4 text-primary" aria-hidden="true" />
+            <AlertTitle className="font-display">Transaction confirmed</AlertTitle>
+            {/* On-chain signature kept mono. */}
+            <AlertDescription className="break-all font-mono text-xs">{lastSignature}</AlertDescription>
           </Alert>
         ) : null}
 
         {info ? (
           <Alert className="rounded-md border-sky-400/30 bg-sky-400/10 text-sky-200">
             <CheckCircle2 className="size-4 text-sky-300" aria-hidden="true" />
-            <AlertTitle>Setup ready</AlertTitle>
+            <AlertTitle className="font-display">Setup ready</AlertTitle>
             <AlertDescription>{info}</AlertDescription>
           </Alert>
         ) : null}
@@ -262,31 +281,34 @@ export function WalletAllowancePanel() {
         <div className="grid gap-3 lg:grid-cols-3">
           <div className="rounded-md border border-border bg-muted p-3">
             <div className="flex items-center justify-between gap-2">
-              <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Runtime</div>
+              <SectionLabel>Runtime</SectionLabel>
               {statusBadge(readiness?.mode === "live-devnet", readiness?.mode ?? "loading")}
             </div>
-            <div className="mt-2 text-sm text-muted-foreground">{readiness?.rpcUrl ?? "Loading RPC"}</div>
-            <div className="mt-1 break-all text-xs text-muted-foreground">{readiness?.mint ?? "Loading mint"}</div>
+            {/* RPC + mint are on-chain config → mono. */}
+            <div className="mt-2 break-all font-mono text-xs text-muted-foreground">{readiness?.rpcUrl ?? "Loading RPC"}</div>
+            <div className="mt-1 break-all font-mono text-xs text-muted-foreground">{readiness?.mint ?? "Loading mint"}</div>
           </div>
 
           <div className="rounded-md border border-border bg-muted p-3">
             <div className="flex items-center justify-between gap-2">
-              <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Wallet</div>
+              <SectionLabel>Wallet</SectionLabel>
               {statusBadge(Boolean(ownerAddress), ownerAddress ? "connected" : "not connected")}
             </div>
-            <div className="mt-2 break-all text-sm text-muted-foreground">{ownerAddress ?? "No wallet selected"}</div>
-            <div className="mt-1 text-xs text-muted-foreground">{status?.userSol ?? "SOL balance unavailable"}</div>
+            {/* Wallet address + SOL balance → mono. */}
+            <div className="mt-2 break-all font-mono text-xs text-muted-foreground">{ownerAddress ?? "No wallet selected"}</div>
+            <div className="mt-1 font-mono text-xs text-muted-foreground">{status?.userSol ?? "SOL balance unavailable"}</div>
           </div>
 
           <div className="rounded-md border border-border bg-muted p-3">
             <div className="flex items-center justify-between gap-2">
-              <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Facilitator</div>
+              <SectionLabel>Facilitator</SectionLabel>
               {statusBadge(Boolean(readiness?.localFacilitator.enabled), readiness?.localFacilitator.enabled ? "ready" : "missing")}
             </div>
-            <div className="mt-2 break-all text-sm text-muted-foreground">
+            {/* Fee payer + program ID → mono. */}
+            <div className="mt-2 break-all font-mono text-xs text-muted-foreground">
               {shortAddress(readiness?.localFacilitator.feePayer)}
             </div>
-            <div className="mt-1 break-all text-xs text-muted-foreground">
+            <div className="mt-1 break-all font-mono text-xs text-muted-foreground">
               {shortAddress(readiness?.subscriptionsProgram)}
             </div>
           </div>
@@ -296,15 +318,18 @@ export function WalletAllowancePanel() {
 
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_280px]">
           <div className="grid gap-2 text-sm">
+            <SectionLabel>Allowance</SectionLabel>
             <div className="flex items-center justify-between gap-3">
               <span className="text-muted-foreground">User USDC ATA</span>
-              <span className="min-w-0 flex-1 break-all text-right font-medium text-foreground">
+              {/* Token-account address → mono. */}
+              <span className="min-w-0 flex-1 break-all text-right font-mono text-xs font-medium text-foreground">
                 {status?.userAta ?? "Connect wallet"}
               </span>
             </div>
             <div className="flex items-center justify-between gap-3">
               <span className="text-muted-foreground">User USDC</span>
-              <span className="min-w-0 flex-1 break-all text-right font-medium text-foreground">
+              {/* Balance amount → mono. */}
+              <span className="min-w-0 flex-1 break-all text-right font-mono text-xs font-medium text-foreground">
                 {status?.userUsdc ?? "Unavailable"}
               </span>
             </div>
@@ -322,7 +347,8 @@ export function WalletAllowancePanel() {
             </div>
             <div className="flex items-center justify-between gap-3">
               <span className="text-muted-foreground">Delegatee</span>
-              <span className="min-w-0 flex-1 break-all text-right font-medium text-foreground">
+              {/* Delegatee address → mono. */}
+              <span className="min-w-0 flex-1 break-all text-right font-mono text-xs font-medium text-foreground">
                 {status?.delegatee ?? "Not configured"}
               </span>
             </div>
@@ -361,15 +387,17 @@ export function WalletAllowancePanel() {
         </div>
 
         <div className="grid gap-2">
+          <SectionLabel>Readiness checks</SectionLabel>
           {readiness?.checks.map((check) => (
             <div key={check.id} className="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
               {check.ok ? (
-                <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-emerald-400" aria-hidden="true" />
+                <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden="true" />
               ) : (
                 <CircleAlert className="mt-0.5 size-3.5 shrink-0 text-amber-400" aria-hidden="true" />
               )}
               <span className="font-medium text-foreground">{check.label}:</span>
-              <span className="min-w-0 break-words">{check.detail}</span>
+              {/* Detail often contains config/addresses → mono. */}
+              <span className="min-w-0 break-words font-mono">{check.detail}</span>
             </div>
           ))}
         </div>

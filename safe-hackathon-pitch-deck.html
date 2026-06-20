@@ -348,7 +348,18 @@
       <div class="content split">
         <div>
           <h2>A valid transaction can still be the wrong payment.</h2>
-          <p class="lede">Agents are moving from reading to transacting. But a spend cap only answers one question: how much?</p>
+          <p class="lede">Solana x402 has already processed real payment volume. But public data does not answer the safety question: should this agent have paid?</p>
+          <div class="grid-2" style="margin-top: 28px;">
+            <div class="panel blue">
+              <div class="metric">35M+</div>
+              <p class="small">Solana x402 transactions all time.</p>
+            </div>
+            <div class="panel good">
+              <div class="metric">$10M+</div>
+              <p class="small">Solana x402 payment volume all time.</p>
+            </div>
+          </div>
+          <p class="source">Source: solana.com/solutions/x402. Wrong-payment counts are not publicly labeled.</p>
         </div>
         <div class="panel bad">
           <ul class="list">
@@ -361,10 +372,10 @@
         </div>
       </div>
       <div class="footbar">
-        <span>Core insight: amount caps are necessary, but not sufficient.</span>
+        <span>Public dashboards count volume. SAFE blocks and records wrong payments.</span>
         <span>02 / 07</span>
       </div>
-      <aside class="notes">Spend about 15 seconds. Make the distinction clear: crypto payment validity is not the same as user-intent validity.</aside>
+      <aside class="notes">Spend about 15 seconds. Make the distinction clear: crypto payment validity is not the same as user-intent validity. Public x402 sources expose transactions and volume, but not a verified count of wrong agent payments.</aside>
     </section>
 
     <section class="slide" data-title="Solution">
@@ -491,31 +502,38 @@ pnpm safe audit</pre>
     <section class="slide" data-title="Why Now">
       <div class="topbar">
         <span class="kicker">Why Now</span>
-        <span>The rails arrived before the firewall.</span>
+        <span>Solana x402 usage is already measurable.</span>
       </div>
       <div class="content">
-        <h2>Autonomous payments are becoming normal HTTP flows.</h2>
-        <div class="grid-3" style="margin-top: 36px;">
+        <h2>Solana x402 has real volume. The safety layer is still missing.</h2>
+        <div class="grid-4" style="margin-top: 34px;">
           <div class="panel blue">
-            <h3>x402</h3>
-            <p class="small" style="margin-top: 12px;">HTTP 402 payment challenges let agents pay APIs and content programmatically.</p>
+            <div class="metric">35M+</div>
+            <p class="small">Solana x402 transactions processed all time.</p>
           </div>
           <div class="panel good">
-            <h3>Solana allowances</h3>
-            <p class="small" style="margin-top: 12px;">Users can pre-authorize capped delegated spend for autonomous agents.</p>
+            <div class="metric">$10M+</div>
+            <p class="small">Solana x402 payment volume processed all time.</p>
           </div>
           <div class="panel">
-            <h3>Missing layer</h3>
-            <p class="small" style="margin-top: 12px;">The rail verifies payment validity. SAFE verifies buyer-side intent.</p>
+            <div class="metric">200M+</div>
+            <p class="small">monthly stablecoin transactions on Solana.</p>
+          </div>
+          <div class="panel">
+            <div class="metric">$11B+</div>
+            <p class="small">stablecoins in circulation on Solana.</p>
           </div>
         </div>
-        <p class="source">Sources: Coinbase x402 docs; Solana x402 guide; Solana Subscriptions & Allowances announcement.</p>
+        <div class="panel soft" style="margin-top: 22px;">
+          <p class="small">The gap: public sources do not report how many agent payments were semantically wrong. SAFE creates that pre-signing decision and audit layer.</p>
+        </div>
+        <p class="source">Source: solana.com/solutions/x402. Caveat: public x402 data reports transactions and volume, not verified wrong-payment counts.</p>
       </div>
       <div class="footbar">
-        <span>Why Solana: capped delegated settlement + low-cost micro-payments.</span>
+        <span>Solana adds 400ms finality and roughly $0.00025 transaction cost for micro-payments.</span>
         <span>06 / 07</span>
       </div>
-      <aside class="notes">This is the crypto necessity slide. If you remove Solana allowances, SAFE loses the hard spending boundary. If you remove SAFE, allowances only limit amount, not meaning.</aside>
+      <aside class="notes">Use the official Solana numbers: 35M+ Solana x402 transactions, $10M+ volume, 200M+ monthly stablecoin transactions, $11B+ stablecoins in circulation, 400ms finality, and about $0.00025 per transaction. Then say: the market measures payment activity, but not whether the agent should have paid. That is SAFE's dataset and product wedge.</aside>
     </section>
 
     <section class="slide" data-title="Vision">

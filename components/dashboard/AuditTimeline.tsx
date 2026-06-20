@@ -6,6 +6,8 @@ import { CircleCheck, CircleX, Clock3, ReceiptText, ShieldAlert } from "lucide-r
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SectionLabel } from "@/components/dashboard/SectionLabel";
+import { StatusLed, type LedTone } from "@/components/dashboard/StatusLed";
 import type { AuditRecord } from "@/lib/types";
 
 interface AuditResponse {
@@ -38,9 +40,10 @@ function sortNewestFirst(records: AuditRecord[]) {
   return [...records].sort((left, right) => Date.parse(right.timestamp) - Date.parse(left.timestamp));
 }
 
+// Decision badge tone: approve = Solana green accent, redact = amber review, else red blocked.
 function decisionClass(decision: string) {
   if (decision === "approve") {
-    return "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
+    return "border-primary/30 bg-primary/10 text-primary";
   }
 
   if (decision === "redact_and_approve") {
@@ -50,9 +53,10 @@ function decisionClass(decision: string) {
   return "border-red-400/30 bg-red-400/10 text-red-300";
 }
 
+// Settlement badge tone: settled/verified = green accent, failed = red, else neutral.
 function settlementClass(status: string) {
   if (status === "settled" || status === "verified") {
-    return "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
+    return "border-primary/30 bg-primary/10 text-primary";
   }
 
   if (status === "failed") {
@@ -62,9 +66,22 @@ function settlementClass(status: string) {
   return "border-border bg-muted text-muted-foreground";
 }
 
+// Drives the per-row outcome LED in the timeline rail.
+function ledTone(record: AuditRecord): LedTone {
+  if (record.decision === "approve") {
+    return "green";
+  }
+
+  if (record.decision === "redact_and_approve") {
+    return "amber";
+  }
+
+  return "red";
+}
+
 function StatusIcon({ record }: { record: AuditRecord }) {
   if (record.decision === "approve") {
-    return <CircleCheck className="size-4 text-emerald-400" aria-hidden="true" />;
+    return <CircleCheck className="size-4 text-primary" aria-hidden="true" />;
   }
 
   if (record.decision === "redact_and_approve") {
@@ -113,11 +130,14 @@ export function AuditTimeline() {
   return (
     <Card className="rounded-md border border-border bg-card shadow-none ring-0">
       <CardHeader className="flex flex-row items-center justify-between gap-3">
-        <CardTitle className="flex min-w-0 items-center gap-2 text-base">
+        <CardTitle className="flex min-w-0 items-center gap-2 font-display text-base">
           <ReceiptText className="size-4 shrink-0 text-sky-400" aria-hidden="true" />
           <span className="truncate">Audit Timeline</span>
         </CardTitle>
-        <Badge variant="outline" className="shrink-0 border-border bg-muted text-muted-foreground">
+        <Badge
+          variant="outline"
+          className="shrink-0 border-border bg-muted font-mono text-muted-foreground"
+        >
           {records.length} records
         </Badge>
       </CardHeader>
@@ -130,39 +150,47 @@ export function AuditTimeline() {
           </Alert>
         ) : null}
 
-        {records.length === 0 ? (
-          <div className="rounded-md border border-dashed border-border bg-muted p-4 text-sm text-muted-foreground">
-            No audit records yet.
+        {records.length === 0 && !error ? (
+          <div className="rounded-md border border-dashed border-border bg-muted p-4 font-mono text-sm text-muted-foreground">
+            No audit events yet.
           </div>
         ) : null}
 
+        {records.length > 0 ? <SectionLabel>Event log</SectionLabel> : null}
+
         <div className="space-y-2">
           {records.map((record) => (
-            <div key={record.auditId} className="rounded-md border border-border p-3 text-sm">
+            <div key={record.auditId} className="rounded-md border border-border bg-muted p-3 text-sm">
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-muted ring-1 ring-border">
-                  <StatusIcon record={record} />
+                {/* Outcome rail: tone LED above the decision icon chip */}
+                <div className="mt-0.5 flex shrink-0 flex-col items-center gap-1.5">
+                  <StatusLed tone={ledTone(record)} />
+                  <div className="flex size-7 items-center justify-center rounded-md bg-card ring-1 ring-border">
+                    <StatusIcon record={record} />
+                  </div>
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="min-w-0 truncate font-medium text-foreground">{record.merchantDomain}</div>
-                    <div className="font-medium text-foreground">{formatUsdc(record.amountUsdc)}</div>
+                    <div className="min-w-0 truncate font-mono font-medium text-foreground">
+                      {record.merchantDomain}
+                    </div>
+                    <div className="font-mono font-medium text-foreground">{formatUsdc(record.amountUsdc)}</div>
                   </div>
                   <div className="mt-1 flex flex-wrap gap-2">
-                    <Badge variant="outline" className={decisionClass(record.decision)}>
+                    <Badge variant="outline" className={`font-mono ${decisionClass(record.decision)}`}>
                       {formatStatus(record.decision)}
                     </Badge>
                     <Badge
                       variant="outline"
-                      className="h-auto max-w-full whitespace-normal break-all border-border bg-muted text-left leading-5 text-muted-foreground"
+                      className="h-auto max-w-full whitespace-normal break-all border-border bg-card text-left font-mono leading-5 text-muted-foreground"
                     >
                       {record.reasonCode}
                     </Badge>
-                    <Badge variant="outline" className={settlementClass(record.settlementStatus)}>
+                    <Badge variant="outline" className={`font-mono ${settlementClass(record.settlementStatus)}`}>
                       {formatStatus(record.settlementStatus)}
                     </Badge>
                   </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Clock3 className="size-3.5" aria-hidden="true" />
                       {formatTimestamp(record.timestamp)}

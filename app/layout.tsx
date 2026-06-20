@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "@solana/wallet-adapter-react-ui/styles.css";
 import "./globals.css";
-import { Geist } from "next/font/google";
+import { Geist, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { SolanaWalletProvider } from "@/components/wallet/SolanaWalletProvider";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+// Geist = body/UI, Space Grotesk = display/headings, JetBrains Mono = on-chain data.
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-display" });
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
   title: "SAFE - Spend Authorization Firewall for Agents",
@@ -24,7 +27,15 @@ export default function RootLayout({
 }>) {
   // Dark mode only: force the `dark` class so `.dark` CSS variables always apply.
   return (
-    <html lang="en" className={cn("dark font-sans", geist.variable)}>
+    <html
+      lang="en"
+      className={cn(
+        "dark font-sans",
+        geist.variable,
+        spaceGrotesk.variable,
+        jetbrainsMono.variable
+      )}
+    >
       <body>
         <SolanaWalletProvider>{children}</SolanaWalletProvider>
       </body>

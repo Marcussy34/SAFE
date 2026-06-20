@@ -20,6 +20,8 @@ Autonomous agents are moving from reading and recommending to acting and transac
 
 Today, the safety layer is weak.
 
+On Solana, x402 has already processed `35M+` transactions and `$10M+` payment volume. Public data shows the payment rail is active, but it does not label whether a payment was the right one for the user, merchant, category, metadata, or intent.
+
 A spending cap only answers:
 
 ```text
@@ -86,6 +88,37 @@ This is becoming urgent because several shifts are happening at once:
 That creates a new risk: autonomous payments can happen faster than humans can review them.
 
 The missing layer is not another wallet or another payment rail. The missing layer is pre-payment authorization for autonomous agents.
+
+## Solana x402 Market Data
+
+Use all-time Solana numbers, not last-30-days numbers, when pitching SAFE.
+
+Sourced claims:
+
+- Solana reports `35M+` x402 transactions processed since x402 launched on Solana.
+- Solana reports `$10M+` in x402 payment volume processed on Solana.
+- Solana reports `200M+` monthly stablecoin transactions.
+- Solana reports `$11B+` stablecoins in circulation.
+- Solana highlights roughly `400ms` finality and about `$0.00025` transaction cost.
+
+What we should not claim:
+
+- Do not claim a verified number of agents that made Solana x402 payments. Public sources report transactions, buyers, sellers, or wallets, not a clean count of autonomous agents.
+- Do not claim a verified number of wrongly made Solana x402 payments. Public sources do not label whether a payment was semantically wrong, manipulated, duplicated, or outside user intent.
+
+The SAFE framing:
+
+```text
+The market can already measure x402 transaction volume.
+It cannot yet measure whether an agent should have made each payment.
+SAFE creates the pre-signing decision and audit dataset for that missing safety layer.
+```
+
+Relevant safety evidence:
+
+- x402 security research has shown practical failure classes such as replay, request grant pollution, selection manipulation, unpaid service, and paid-but-denied outcomes.
+- That research is protocol-risk evidence, not a Solana all-time wrong-payment count.
+- SAFE should use it to show the type of failure it prevents, while using Solana's own x402 numbers for market traction.
 
 ## Why Solana
 
@@ -925,7 +958,7 @@ SAFE can become defensible through the trust layer: verified merchant records, r
 
 ### Why now?
 
-x402 is making paid web resources programmable. Solana allowances make delegated spending practical. AI agents are starting to transact. That creates the need for pre-payment authorization now.
+x402 is making paid web resources programmable. Solana already reports `35M+` x402 transactions and `$10M+` x402 volume on Solana, with `200M+` monthly stablecoin transactions and `$11B+` stablecoins in circulation. Solana allowances make delegated spending practical. AI agents are starting to transact. That creates the need for pre-payment authorization now.
 
 ### What should judges look at in the demo?
 
@@ -947,6 +980,8 @@ Autonomous agents need more than wallets. They need payment judgment. SAFE is th
 
 - x402 docs: https://docs.x402.org/
 - x402 exact scheme: https://docs.x402.org/schemes/exact
+- Solana x402 guide and ecosystem stats: https://solana.com/solutions/x402
 - Solana fixed delegation docs: https://solana.com/docs/payments/subscriptions/fixed-delegation
+- x402 attack research: https://arxiv.org/abs/2603.18148
 - SAFE architecture: `architecture.md`
 - SAFE external-agent skill: `skills/safe-agent-payments/SKILL.md`
