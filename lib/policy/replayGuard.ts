@@ -56,6 +56,18 @@ export class ReplayGuard {
     return replay;
   }
 
+  // Release a remembered request so an explicit retry is allowed again.
+  forget(fingerprint: string, requestHash: string) {
+    const hashes = this.seen.get(fingerprint);
+    if (!hashes) {
+      return;
+    }
+    hashes.delete(requestHash);
+    if (hashes.size === 0) {
+      this.seen.delete(fingerprint);
+    }
+  }
+
   private prune(nowMs: number) {
     for (const [fingerprint, hashes] of this.seen.entries()) {
       for (const [requestHash, entry] of hashes.entries()) {

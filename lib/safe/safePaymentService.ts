@@ -131,12 +131,12 @@ async function evaluateRequirement(
   const policy: SpendPolicy = runtimeContext.policy;
   const fingerprint = createRequestFingerprint(request);
   const replay = rememberReplay
-    ? memoryStore.replayGuard.checkAndRemember(
+    ? await memoryStore.replayStore.checkAndRemember(
         fingerprint,
         request.rawRequestHash,
         policy.replayPolicy.idempotencyWindowSeconds
       )
-    : memoryStore.replayGuard.check(fingerprint, request.rawRequestHash, policy.replayPolicy.idempotencyWindowSeconds);
+    : await memoryStore.replayStore.check(fingerprint, request.rawRequestHash);
   const decision = evaluatePolicy(request, policy, memoryStore.intent, replay);
 
   return { request, decision };

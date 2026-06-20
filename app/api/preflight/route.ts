@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     const runtimeContext = await prepareRuntimePreflightContext(normalized, memoryStore.policy);
     const runtimeRequest = runtimeContext.request;
     const runtimePolicy = runtimeContext.policy;
-    const replay = memoryStore.replayGuard.checkAndRemember(
+    const replay = await memoryStore.replayStore.checkAndRemember(
       createRequestFingerprint(runtimeRequest),
       runtimeRequest.rawRequestHash,
       runtimePolicy.replayPolicy.idempotencyWindowSeconds
