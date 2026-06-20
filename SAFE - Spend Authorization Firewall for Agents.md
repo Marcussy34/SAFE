@@ -554,6 +554,77 @@ This is similar to the way security providers combine local firewall rules with 
 
 The shared database could eventually become decentralized, but that is not an MVP claim. A decentralized registry would need signed evidence, anti-spam controls, sybil resistance, privacy-preserving audit sharing, dispute resolution, and governance.
 
+## **10.6 Production-ready architecture direction**
+
+SAFE should not decentralize every part of the system at once. The strongest production path is a private-first hybrid architecture.
+
+```
+Private SAFE firewall
+  + private verifier agent
+  + shared verified trust database
+  + public proof anchors
+  + decentralized evidence storage later
+```
+
+The payment decision path must remain fast:
+
+```
+Agent asks SAFE
+  -> SAFE checks local policy, cache, registry, replay, and allowance
+     -> approve / reject / redact
+```
+
+Unknown payments can use a slower path:
+
+```
+Unknown merchant
+  -> async verifier job
+     -> evidence bundle
+        -> registry update
+           -> retry, approve once, reject, or ask human
+```
+
+Do not require every live payment to wait on decentralized storage retrieval, public-chain registry reads, or live web investigation. That would add latency and brittle dependencies to the most sensitive part of the system.
+
+### **10.6.1 Privacy boundary**
+
+The following data should stay private by default:
+
+- user intent
+- raw payment reason
+- agent task context
+- user wallet/payment history
+- full audit records
+- verifier-agent browsing traces
+- rejected sensitive metadata
+
+The shared layer should only receive sanitized verification facts:
+
+- merchant domain
+- verified recipient or token account
+- supported token and network
+- category
+- normal price range
+- risk score
+- evidence hash
+- review status
+- expiry timestamp
+
+### **10.6.2 Production infrastructure split**
+
+|**Component**|**Role**|
+|---|---|
+|**Postgres**|Source of truth for merchant registry, trust records, policy versions, review state, and audit metadata.|
+|**Redis**|Low-latency replay guard, risk cache, rate limits, and idempotency keys.|
+|**Queue**|Async verifier jobs, human review workflows, registry refresh jobs, and dispute processing.|
+|**Object storage**|Private enterprise evidence storage and large audit artifacts.|
+|**IPFS/Filecoin**|Durable public or semi-public evidence bundles and audit snapshots once signed evidence matters.|
+|**Solana**|Hash anchors, merchant attestations, challenge/dispute outcomes, and payment receipts.|
+|**0G**|Later option for AI-native data availability, high-throughput verifier data, or decentralized AI compute.|
+|**SAFE policy engine**|Final decision authority. Verifier agents and registries inform it; they do not replace it.|
+
+Filecoin/IPFS and 0G should not be required for v1. They become useful when SAFE needs durable proof storage, public evidence availability, high-throughput AI data, or decentralized verifier infrastructure.
+
 ## **11. Policy model and decision engine**
 
 ## **11.1 Policy object**

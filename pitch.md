@@ -396,6 +396,91 @@ Precise phrasing:
 
 > SAFE can start as a local payment firewall, then grow into a shared verification layer. In the long run, parts of that trust layer could be decentralized.
 
+## Production Architecture Direction
+
+The production-ready path should be hybrid, not fully decentralized from day one.
+
+Recommended model:
+
+```text
+Private SAFE firewall
++ private verifier agent
++ shared verified trust database
++ public proof anchors
++ decentralized evidence storage later
+```
+
+The payment decision path must stay fast and private:
+
+```text
+Agent asks SAFE -> SAFE checks local policy/cache/registry -> approve/reject/redact
+```
+
+Unknown payments should use a slower async path:
+
+```text
+Unknown merchant -> verifier job -> evidence bundle -> registry update -> retry or ask human
+```
+
+SAFE should not make every payment wait on public chain reads, decentralized storage retrieval, or live web investigation. That would be slow, brittle, and expensive.
+
+### What Stays Private
+
+These should stay private by default:
+
+- user intent
+- raw payment reason
+- agent task context
+- user wallet/payment history
+- full audit logs
+- verifier-agent browsing trace
+- rejected sensitive metadata
+
+The verifier agent should run locally, inside the customer's SAFE instance, inside a trusted hosted SAFE environment, or later inside TEE/private compute. It should not be a public agent that sees every user's raw payment context.
+
+### What Can Be Shared
+
+The shared layer should receive sanitized facts, not raw payment history.
+
+Good shared record:
+
+```text
+stats-api.example is verified for USDC match_data payments
+recipient token account: X
+normal price range: $0.01-$0.05
+evidence hash: Y
+expires: 2026-07-19
+```
+
+Bad shared record:
+
+```text
+User A paid this API for this private reason from this wallet.
+```
+
+The clean split is:
+
+| Layer | Visibility | Example |
+|---|---|---|
+| Local audit | private | full reason, user intent, raw SAFE decision |
+| Shared trust record | semi-public | merchant, recipient, category, risk score |
+| Public anchor | public | hash proving a record or batch existed |
+
+### Practical Production Stack
+
+For production readiness and scalability:
+
+```text
+Postgres = merchant registry, policy versions, review state
+Redis = low-latency cache, replay checks, rate limits
+Queue = async verifier jobs
+Object storage/IPFS/Filecoin = evidence bundles and audit snapshots
+Solana = public hash anchors, attestations, disputes, receipts
+SAFE policy engine = final decision authority
+```
+
+Use Filecoin/IPFS for durable evidence archives once evidence bundles matter. Use 0G later only if SAFE needs AI-native data availability, high-throughput verifier data, or decentralized AI compute. Do not make either a required dependency for v1.
+
 ## What Works Today
 
 The current MVP supports:

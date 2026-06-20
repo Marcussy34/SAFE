@@ -378,6 +378,76 @@ This is similar to how security products combine local rules with shared reputat
 
 Decentralization is a possible later form of the shared trust layer, not a current claim. A decentralized version would need anti-spam controls, sybil resistance, privacy-preserving audit sharing, signed evidence, dispute resolution, and governance.
 
+## Production Reference Architecture
+
+The scalable production design should be private-first and hybrid.
+
+```mermaid
+flowchart TB
+  Agent[External agent] --> SafeAPI[SAFE API]
+  SafeAPI --> LocalPolicy[Local policy engine]
+  LocalPolicy --> Cache[Redis cache and replay guard]
+  LocalPolicy --> Registry[Postgres trust registry]
+  Registry --> Decision[Fast payment decision]
+  Decision -->|approved only| Settlement[Allowance settlement]
+  Decision -->|unknown| Queue[Verifier job queue]
+  Queue --> Verifier[Private verifier agent]
+  Verifier --> Evidence[Signed evidence bundle]
+  Evidence --> Registry
+  Evidence --> Storage[Object storage / IPFS / Filecoin]
+  Registry --> Anchor[Solana hash anchor]
+  Settlement --> Audit[Private audit log]
+  Audit --> Anchor
+```
+
+Fast path:
+
+```text
+agent -> SAFE -> local policy/cache/registry -> decision
+```
+
+Slow path:
+
+```text
+unknown merchant -> async verifier job -> evidence bundle -> registry update -> retry or ask human
+```
+
+Do not put decentralized storage or public-chain reads in the hot payment path. The hot path needs low latency and clear fail-closed behavior.
+
+Private by default:
+
+- user intent
+- raw payment reason
+- agent task context
+- wallet/payment history
+- full audit records
+- verifier browsing traces
+- rejected sensitive metadata
+
+Safe to share after sanitization:
+
+- verified merchant domain
+- verified recipient or token account
+- supported token and network
+- category
+- normal price range
+- risk score
+- evidence hash
+- review status
+- expiry timestamp
+
+Recommended infrastructure split:
+
+| Component | Production role |
+|---|---|
+| Postgres | source of truth for trust records, policy versions, reviews |
+| Redis | fast replay guard, risk cache, rate limits, idempotency |
+| Queue | async verifier jobs and human-review workflows |
+| Object storage | private evidence storage for enterprise deployments |
+| IPFS/Filecoin | durable public or semi-public evidence bundles later |
+| Solana | hash anchors, merchant attestations, disputes, receipts |
+| 0G | later option for AI-native DA, verifier data, or decentralized compute |
+
 ## x402 Compatibility Paths
 
 ```mermaid

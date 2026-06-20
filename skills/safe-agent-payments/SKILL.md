@@ -298,6 +298,8 @@ Before live payment:
 
 This skill describes the current SAFE API. The future product can add an agentic verifier for unknown merchants, but that verifier must stay outside the signing path.
 
+Future verifier agents should be private by default. They may see user intent, raw payment reasons, task context, URLs, and sensitive metadata. Run them locally, inside the customer's SAFE instance, inside a trusted hosted SAFE environment, or later inside private/TEE compute.
+
 Correct future model:
 
 ```text
@@ -337,6 +339,8 @@ If a future SAFE endpoint returns an approved verification decision, continue on
 
 SAFE can become stronger over time as approved, blocked, redacted, and human-reviewed cases are logged into a verified trust database.
 
+Share sanitized facts, not raw user payment history.
+
 Useful future shared records include:
 
 - verified merchant domains
@@ -349,7 +353,16 @@ Useful future shared records include:
 - PII leakage patterns
 - signed evidence and audit receipt hashes
 
-This database may eventually become decentralized, but the MVP does not implement that. Treat decentralization as roadmap only.
+Keep these private:
+
+- raw payment reasons
+- user intent
+- user wallet/payment history
+- full audit logs
+- verifier browsing traces
+- rejected sensitive metadata
+
+This database may eventually become decentralized, but the MVP does not implement that. Treat decentralization as roadmap only. Public/decentralized layers should receive hashes, attestations, or sanitized evidence bundles, not raw private payment context.
 
 ## Repo Pointers
 
