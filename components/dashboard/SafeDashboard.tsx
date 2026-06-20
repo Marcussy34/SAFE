@@ -3,6 +3,7 @@ import { Activity, BookOpen, Database, ShieldCheck } from "lucide-react";
 
 import { AgentRunPanel } from "@/components/dashboard/AgentRunPanel";
 import { AuditTimeline } from "@/components/dashboard/AuditTimeline";
+import { LiveDemoStatePanel } from "@/components/dashboard/LiveDemoStatePanel";
 import { PaymentFlowDiagram } from "@/components/dashboard/PaymentFlowDiagram";
 import { PolicyPanel } from "@/components/dashboard/PolicyPanel";
 import { StatusMetric } from "@/components/dashboard/StatusMetric";
@@ -65,6 +66,8 @@ export function SafeDashboard() {
         </section>
 
         <WalletAllowancePanel />
+
+        <LiveDemoStatePanel />
 
         <section className="grid items-start gap-4 lg:grid-cols-[360px_minmax(0,1fr)]">
           <PolicyPanel />

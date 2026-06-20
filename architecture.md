@@ -308,17 +308,35 @@ flowchart LR
 
 Be careful: live mode spends real devnet USDC from the connected wallet allowance.
 
+## Frontend Demo Surface
+
+The browser dashboard is the primary demo surface, not just the CLI.
+
+What the frontend now shows:
+
+- Live readiness checks for RPC, mode, delegatee signer, facilitator, and legacy smoke signers.
+- Env wallet balances for user/delegator, agent/delegatee, and facilitator/sponsor.
+- Allowance status, including delegation PDA, delegatee, amount, and expiry.
+- One-click agent run with before/after user USDC balances.
+- Per-attempt SAFE decision, x402 request fields, facilitator result, payment hash, tx signature, and Explorer link.
+- Audit timeline for approved, blocked, redacted, and settled payments.
+
+The CLI scripts remain useful for development, but they are no longer required to explain the product during a demo.
+
 ## API Surface
 
 ```mermaid
 flowchart TB
   Dashboard[Dashboard] --> AgentRun["/api/agent/run"]
+  Dashboard --> DemoState["/api/demo/state"]
   Dashboard --> Readiness["/api/readiness"]
   Dashboard --> Setup["/api/setup/allowance"]
   Dashboard --> Policy["/api/policy"]
   Dashboard --> Intent["/api/intent"]
   Dashboard --> Audit["/api/audit"]
 
+  DemoState --> Readiness
+  DemoState --> Audit
   AgentRun --> Stats["/api/x402/stats"]
   AgentRun --> Transit["/api/x402/transit"]
   AgentRun --> Food["/api/x402/food"]
@@ -343,6 +361,7 @@ flowchart TB
 | Wallet allowance setup | `lib/solana/walletAllowanceSetup.ts` |
 | Live Solana settlement | `lib/solana/liveSettlement.ts` |
 | Readiness checks | `lib/runtime/readiness.ts` |
+| Frontend demo state | `lib/runtime/demoState.ts` |
 | Runtime live preflight | `lib/solana/runtimePreflight.ts` |
 | Merchant registry | `lib/fixtures/merchants.ts` |
 | Devnet scripts | `scripts/devnet/*` |
